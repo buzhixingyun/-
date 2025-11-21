@@ -325,6 +325,48 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
+        /* Moon Animation */
+        .moon-wrapper {
+            position: absolute; top: 10%; right: 10%;
+            z-index: 5; cursor: pointer;
+            animation: moonFloat 6s ease-in-out infinite alternate;
+            transition: transform 0.3s;
+        }
+        .moon-wrapper:active { transform: scale(0.9); }
+        .moon { font-size: 5.5rem; filter: drop-shadow(0 0 25px rgba(255, 240, 200, 0.5)); }
+        @keyframes moonFloat { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+
+        /* Forest Background */
+        .forest-layer {
+            position: absolute; bottom: 110px; left: 0; width: 100%;
+            display: flex; justify-content: space-around;
+            pointer-events: none; z-index: 5; opacity: 0.9;
+            font-size: 4rem; filter: blur(0.5px);
+        }
+        .tree-bg { transform: scale(0.8); opacity: 0.7; }
+
+        /* Cabin Animation */
+        .cabin-wrapper {
+            position: absolute; bottom: 110px; left: 8%;
+            z-index: 15; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .cabin-wrapper:hover { transform: scale(1.05); }
+        .cabin-wrapper:active { transform: scale(0.95); }
+        .cabin { font-size: 5rem; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        
+        .smoke-container { position: absolute; top: -20px; right: 10px; }
+        .smoke {
+            width: 12px; height: 12px; background: rgba(255,255,255,0.7);
+            border-radius: 50%; position: absolute;
+            animation: smokeRise 3s infinite; opacity: 0;
+        }
+        .smoke:nth-child(2) { animation-delay: 1.5s; }
+        @keyframes smokeRise { 
+            0% { transform: translateY(0) scale(1); opacity: 0.8; } 
+            100% { transform: translateY(-50px) scale(2.5); opacity: 0; } 
+        }
+
         /* Interactive Stage Area */
         .scene-stage {
             display: flex; align-items: flex-end; justify-content: center;
@@ -590,6 +632,27 @@
             <div class="final-subtitle">属于你的可爱冬天 ✨</div>
         </div>
         
+        <!-- Background Elements -->
+        <div class="moon-wrapper" onclick="interact('moon', this)">
+            <div class="moon">🌕</div>
+        </div>
+
+        <div class="forest-layer">
+            <div class="tree-bg">🌲</div>
+            <div class="tree-bg">🌲</div>
+            <div class="tree-bg">🌲</div>
+            <div class="tree-bg">🌲</div>
+        </div>
+
+        <div class="cabin-wrapper" onclick="interact('cabin', this)">
+            <div class="pop-bubble">欢迎回家~</div>
+            <div class="cabin">🏡</div>
+            <div class="smoke-container">
+                <div class="smoke"></div>
+                <div class="smoke"></div>
+            </div>
+        </div>
+
         <!-- Flying Elements -->
         <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
 
@@ -1043,10 +1106,12 @@
                     break;
                 case 'deer':
                 case 'gift':
+                case 'cabin':
                     el.classList.add('anim-jump');
                     break;
                 case 'tree':
-                    if(emoji) emoji.classList.add('anim-glow');
+                case 'moon':
+                    if(emoji || el.querySelector('.moon')) (emoji || el.querySelector('.moon')).classList.add('anim-glow');
                     break;
             }
         }
