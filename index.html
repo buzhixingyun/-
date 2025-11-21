@@ -1,0 +1,620 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <!-- 禁用缩放，优化移动端体验，解决 iOS 点击延迟 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+    <title>Merry Christmas! 🎄</title>  
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">  
+  
+    <style>  
+        /* --- 1. 核心配色与基础设置 --- */  
+        :root {  
+            --bg-color: #FFFBF0;        
+            --primary: #FF8FA3;         
+            --secondary: #B5EAD7;       
+            --text-color: #D4A373;      
+            --accent: #FFE577;          
+            --card-bg: #FFFFFF;  
+            --paper-color: #FFF8E7;  
+        }  
+  
+        * { margin: 0; padding: 0; box-sizing: border-box; }  
+  
+        body {  
+            background-color: var(--bg-color);  
+            color: var(--text-color);  
+            font-family: 'Nunito', 'Ma Shan Zheng', sans-serif;   
+            overflow: hidden;   
+            /* 使用 dvh 适配移动端动态地址栏 */
+            height: 100vh; height: 100dvh; width: 100vw;  
+            cursor: default;   
+            /* 优化移动端交互 */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }  
+  
+        /* --- Loading Screen --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        .loader {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loading-text {
+            margin-top: 15px; font-family: 'Fredoka One'; color: var(--primary);
+        }
+
+        /* --- Background & Effects --- */
+        #snow-container {  
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
+            pointer-events: none; z-index: 1;  
+        }  
+
+        /* --- Music Button --- */
+        #music-control {
+            position: fixed; top: 20px; right: 20px;
+            width: 44px; height: 44px; /* 加大触控区 */
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 22px;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        #music-control:active { transform: scale(0.9); }
+        #music-control.playing { animation: spin 4s linear infinite; color: var(--primary); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+  
+        /* --- Stage System --- */  
+        .overlay-stage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+            opacity: 0; visibility: hidden;
+        }
+
+        /* 初始状态 */
+        #stage-0-intro { z-index: 500; }
+        #stage-1-memory { z-index: 450; }
+        #stage-2-invite { z-index: 400; }
+        #stage-3-card { z-index: 350; background: rgba(255, 251, 240, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+        .overlay-stage.active { opacity: 1; visibility: visible; }
+        .overlay-stage.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        /* --- Dialog UI --- */
+        .dialog-box {  
+            background-color: var(--paper-color);  
+            width: 88%; max-width: 480px; padding: 35px 30px; 
+            border-radius: 24px;  
+            border: 3px solid var(--text-color);  
+            box-shadow: 8px 8px 0px rgba(212, 163, 115, 0.4);  
+            position: relative; 
+            max-height: 85vh; overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+            transform: scale(0.95); opacity: 0;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+        .overlay-stage.active .dialog-box { transform: scale(1); opacity: 1; }
+  
+        .dialog-pin {  
+            position: absolute; top: 16px; left: 50%; transform: translateX(-50%);  
+            width: 16px; height: 16px; background: var(--primary); border-radius: 50%;  
+            box-shadow: inset 2px 2px 4px rgba(255,255,255,0.6);  
+        }  
+  
+        .dialog-content {  
+            margin-top: 20px; font-family: 'Ma Shan Zheng', cursive; font-size: 1.3rem;  
+            line-height: 1.8; color: #5d4037; text-align: left; min-height: 100px;
+        }
+        /* 打字机光标 */
+        .typing-cursor::after {
+            content: '|'; animation: blink 1s infinite; color: var(--primary);
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- Buttons --- */
+        .action-btn {  
+            background-color: var(--primary); color: white;  
+            font-family: 'Fredoka One'; font-size: 1.1rem; letter-spacing: 1px;
+            padding: 12px 32px; border: none; border-radius: 50px;  
+            margin-top: 25px; cursor: pointer; float: right;  
+            box-shadow: 0 4px 0 #d86c7f;  
+            transition: transform 0.1s, box-shadow 0.1s;
+            -webkit-tap-highlight-color: transparent; user-select: none;
+        }  
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }  
+        .action-btn.disabled { opacity: 0.6; pointer-events: none; filter: grayscale(1); }
+
+        /* --- Heart Game --- */  
+        #game-layer {  
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 200; pointer-events: none;   
+        }  
+  
+        .msg-box {  
+            position: absolute; 
+            width: 60px; height: 60px; 
+            background: white; border-radius: 16px; 
+            display: flex; align-items: center; justify-content: center;  
+            text-align: center; padding: 2px; 
+            font-size: 15px; font-weight: bold;  
+            color: #8d6e63; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);  
+            opacity: 0; transform: scale(0);  
+            transition: opacity 0.3s, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);  
+            font-family: 'Ma Shan Zheng', cursive; white-space: nowrap; overflow: hidden; 
+            cursor: pointer; pointer-events: auto;
+            /* 增加触摸热区 */
+            touch-action: manipulation;
+        }  
+  
+        .msg-box:nth-child(4n+1) { background: #FFD1DC; color: #fff; }  
+        .msg-box:nth-child(4n+2) { background: #E2F0CB; color: #779966; }  
+        .msg-box:nth-child(4n+3) { background: #FFF5BA; color: #D4A373; }  
+        .msg-box:nth-child(4n+4) { background: #FFFFFF; color: #FF8FA3; border: 2px solid #FF8FA3; }  
+        
+        .msg-box.visible { opacity: 1; transform: scale(1); }
+        .msg-box.collected { transform: scale(1.2) !important; opacity: 0 !important; transition: all 0.3s ease; }
+
+        /* 粒子特效容器 */
+        .particle {
+            position: absolute; width: 6px; height: 6px; border-radius: 50%;
+            pointer-events: none; z-index: 201;
+            animation: explode 0.6s ease-out forwards;
+        }
+        @keyframes explode { to { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+  
+        #click-hint {  
+            position: fixed; bottom: 8%; width: 100%; text-align: center;  
+            font-family: 'Ma Shan Zheng', cursive; font-size: 1.4rem; color: var(--primary);  
+            z-index: 300; pointer-events: none; 
+            opacity: 0; transition: opacity 0.5s;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.9);
+        }  
+        #click-hint.active { opacity: 1; animation: floatHint 2s infinite ease-in-out; }
+        @keyframes floatHint { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* --- Gift Card --- */  
+        .welcome-card {  
+            background: var(--card-bg); width: 90%; max-width: 450px; padding: 40px 30px;  
+            border-radius: 30px; border: 4px dashed var(--primary);  
+            box-shadow: 0 20px 50px rgba(212, 163, 115, 0.2); text-align: center;  
+            transform: translateY(40px); opacity: 0; transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);   
+        }  
+        .overlay-stage.active .welcome-card { transform: translateY(0); opacity: 1; }  
+  
+        .ribbon { position: absolute; top: -10px; right: -10px; width: 80px; height: 80px; background: var(--secondary); border-radius: 50%; opacity: 0.5; z-index: -1; }  
+        .memory-lane { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; height: 110px; margin-top: 20px;}  
+        .polaroid { background: white; padding: 6px 6px 20px 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transform: rotate(-5deg); width: 90px; border: 1px solid #f0f0f0; }  
+        .polaroid:nth-child(2) { transform: rotate(5deg) translateY(8px); }  
+        .polaroid-img { width: 100%; height: 65px; background-color: #FFD1DC; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }  
+  
+        /* --- Final Scene --- */  
+        #main-scene {  
+            position: relative; z-index: 10; display: flex; flex-direction: column;  
+            align-items: center; justify-content: center; height: 100%; text-align: center;  
+            transition: filter 1s ease, opacity 1s; filter: blur(10px); opacity: 0; pointer-events: none;
+        }  
+        #main-scene.active { filter: blur(0); opacity: 1; pointer-events: auto; }  
+        .snow-ground { position: fixed; bottom: -40px; left: 0; width: 100%; height: 120px; background: white; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: scaleX(1.5); z-index: 2; }  
+          
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg); opacity: 0; } }  
+        .snowflake { position: absolute; background: white; border-radius: 50%; opacity: 0.8; pointer-events: none; }  
+    </style>  
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+</head>  
+<body>  
+    
+    <!-- 资源加载页 -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <div class="loading-text">Loading Memories...</div>
+    </div>
+
+    <!-- 背景音乐 (预加载) -->
+    <audio id="bgm" loop preload="auto">
+        <source src="https://actions.google.com/sounds/v1/holiday/jingle_bells.ogg" type="audio/ogg">
+    </audio>
+    <div id="music-control" onclick="toggleMusic(event)">🎵</div>
+  
+    <!-- 雪花层 -->
+    <div id="snow-container"></div>  
+  
+    <!-- 1. 序章 -->  
+    <div id="stage-0-intro" class="overlay-stage">  
+        <div class="dialog-box">  
+            <div class="dialog-pin"></div>  
+            <h3 style="color: #D4A373; font-size: 1.5rem; font-family: 'Fredoka One'; margin-bottom: 10px;">  
+                To: 最可爱的小胡同学 📝  
+            </h3>  
+            <!-- 内容留空，由打字机填充 -->
+            <div class="dialog-content" id="intro-text"></div>  
+            <button class="action-btn disabled" id="btn-intro" onclick="startMemories()">开启回忆 &gt;</button>  
+        </div>  
+    </div>  
+  
+    <!-- 2. 回忆播放器 -->  
+    <div id="stage-1-memory" class="overlay-stage">  
+        <div class="dialog-box">  
+            <div class="dialog-pin"></div>  
+            <h3 id="mem-title" style="color: #D4A373; font-size: 1.4rem; font-family: 'Fredoka One';"></h3>  
+            <div class="dialog-content typing-cursor" id="mem-text"></div>  
+            <button class="action-btn disabled" id="btn-mem" onclick="nextMemory()">下一步 &gt;</button>  
+        </div>
+    </div>  
+  
+    <!-- 3. 游戏引导 -->  
+    <div id="stage-2-invite" class="overlay-stage">  
+        <div class="dialog-box">  
+            <div class="dialog-pin"></div>  
+            <h3 style="color: #D4A373; font-size: 1.5rem; font-family: 'Fredoka One'; margin-bottom: 10px;">  
+                To: 某某某 📝  
+            </h3>  
+            <div class="dialog-content" id="invite-text"></div>  
+            <button class="action-btn disabled" id="btn-invite" onclick="startGame()">  
+                开始收集祝福 ✨  
+            </button>  
+        </div>  
+    </div>  
+  
+    <!-- 4. 游戏层 -->  
+    <div id="game-layer"></div>  
+    <div id="click-hint">👆 点击屏幕收集祝福 (0/24)</div>  
+  
+    <!-- 5. 礼物卡片 -->  
+    <div id="stage-3-card" class="overlay-stage">  
+        <div class="welcome-card">  
+            <div class="ribbon"></div>  
+            <h2 class="card-title">To: 亲爱的你 ✨</h2>  
+            <p class="card-text" style="font-size: 1.2rem;">  
+                集齐啦！<br>每一个方块都是我的心意。<br>圣诞快乐！  
+            </p>  
+            <div class="memory-lane">  
+                <div class="polaroid"><div class="polaroid-img">🍬</div></div>  
+                <div class="polaroid"><div class="polaroid-img">🌟</div></div>  
+            </div>  
+            <button class="action-btn" style="float:none;" onclick="revealFinal()">拆开礼物 🎁</button>  
+        </div>  
+    </div>  
+  
+    <!-- 6. 最终场景 -->  
+    <div id="main-scene">  
+        <h1 style="font-family: 'Fredoka One'; font-size: 3.2rem; color: #FF8FA3; margin-bottom: 15px; text-shadow: 2px 2px 0px #fff;">Merry Christmas!</h1>  
+        <div style="font-size: 5rem; cursor: pointer; animation: float 3s infinite ease-in-out;">🦌</div>  
+        <p style="margin-top: 20px; color: #D4A373; font-weight: bold; font-size: 1.2rem;">属于你的可爱冬天</p>  
+    </div>  
+    <div class="snow-ground"></div>  
+  
+    <script>  
+        // ================= 数据配置 =================  
+        
+        // 序章文字
+        const INTRO_TEXT = "这是我们认识后我陪你度过的第一个圣诞节\n谨以此纪念我们的友谊\n在这个寒冷的冬天，希望可以为你带来一丝温暖";
+        
+        // 游戏引导文字
+        const INVITE_TEXT = "Hello，圣诞快乐！\n这里有一份特别的礼物送给你。\n准备好了吗？";
+
+        // 祝福语 (24个)
+        const MESSAGES = [  
+            "🍎平安", "💰暴富", "🍀好运", "❤️Love",   
+            "✨闪耀", "🎄Xmas", "🎁礼物", "💪加油",   
+            "🍬甜蜜", "🐱可爱", "🌈美好", "🚀上岸",   
+            "🎉欢庆", "❄️纯洁", "🌟希望", "🏖️自由",   
+            "😄开心", "🐟锦鲤", "🏠温馨", "👭友谊",  
+            "🍰幸福", "🌙晚安", "🧸陪伴", "🎶快乐"  
+        ];  
+
+        // 回忆列表
+        const MEMORIES = [
+            { t: "(1/9) 🌱", c: "还记得我们刚认识的时候吗？\n那时虽然有些拘谨，\n但每一次对话都让我觉得特别投缘。" },
+            { t: "(2/9) 📱", c: "后来我们越来越熟悉，\n开始分享彼此的喜怒哀乐，\n哪怕是生活里的芝麻小事，\n也总想第一时间告诉你。" },
+            { t: "(3/9) 🍲", c: "最开心的就是和你一起讨论好吃的！\n不管是火锅、奶茶还是甜点...\n你绝对是全世界最棒的饭搭子！" },
+            { t: "(4/9) 💪", c: "当然也有一起emo的时候，\n互相吐槽生活的不易、工作的烦恼。\n但只要互相打打气，\n好像就又有了继续升级打怪的动力。" },
+            { t: "(5/9) 😂", c: "谢谢你总是能接住我的奇奇怪怪，\n那些只有我们懂的梗，\n每次想起来都会忍不住嘴角上扬。\n和你聊天真的超级轻松快乐。" },
+            { t: "(6/9) ❄️", c: "不知不觉，\n又一起走过了一个春夏秋冬，\n迎来了这个浪漫的圣诞节。\n因为有你，这个冬天好像也没那么冷了。" },
+            { t: "(7/9) ✨", c: "圣诞节到了，\n想把星星摘下来送给你，\n想把世界上最美好的祝福都给你。\n希望你每天都能遇见属于你的小确幸。" },
+            { t: "(8/9) 🎈", c: "谢谢你出现在我的生命里，\n成为我特别的朋友。\n希望在未来的日子里，\n我们可以继续一起大笑，一起可可爱爱。" },
+            { t: "(9/9) 🎄", c: "最后，\n亲爱的小胡同学，\n愿你永远被爱包围，万事胜意！\n圣诞快乐，不止圣诞，每天都快乐！" }
+        ];
+  
+        // ================= 系统变量 =================  
+        const bgm = document.getElementById('bgm');
+        const musicBtn = document.getElementById('music-control');
+        let currentMemIndex = 0;
+        let collectedCount = 0;
+        let isGameActive = false;
+        let createdBoxes = [];
+
+        // ================= 初始化 =================  
+        window.onload = async () => {
+            // 等待字体加载
+            await document.fonts.ready;
+            
+            // 隐藏Loading
+            const loader = document.getElementById('loading-screen');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 800);
+
+            // 显示序章
+            showStage('stage-0-intro');
+            
+            // 500ms后开始打字
+            setTimeout(() => {
+                typeWriter(document.getElementById('intro-text'), INTRO_TEXT, () => {
+                    enableBtn('btn-intro');
+                });
+            }, 800);
+
+            // 启动雪花
+            setInterval(createSnow, 200);
+        };
+
+        // ================= 功能函数 =================  
+
+        // 1. 场景切换管理
+        function showStage(id) {
+            // 隐藏所有活动场景
+            document.querySelectorAll('.overlay-stage').forEach(el => {
+                el.classList.remove('active');
+                setTimeout(() => {
+                    if(!el.classList.contains('active')) el.style.display = 'none';
+                }, 600);
+            });
+            
+            // 显示目标场景
+            const target = document.getElementById(id);
+            target.style.display = 'flex'; // 先display flex
+            // 强制重绘
+            target.offsetHeight; 
+            target.classList.add('active');
+        }
+
+        // 2. 打字机效果
+        function typeWriter(element, text, onComplete) {
+            element.innerHTML = ""; // 清空
+            element.classList.add('typing-cursor'); // 显示光标
+            let i = 0;
+            const speed = 50; // 打字速度 ms
+
+            function type() {
+                if (i < text.length) {
+                    const char = text.charAt(i);
+                    element.innerHTML += (char === '\n' ? '<br>' : char);
+                    i++;
+                    // 滚动到底部
+                    element.parentElement.scrollTop = element.parentElement.scrollHeight;
+                    setTimeout(type, speed);
+                } else {
+                    element.classList.remove('typing-cursor'); // 移除光标
+                    if (onComplete) onComplete();
+                }
+            }
+            type();
+        }
+
+        function enableBtn(id) {
+            const btn = document.getElementById(id);
+            btn.classList.remove('disabled');
+        }
+
+        // 3. 音乐控制 (带淡入效果)
+        function toggleMusic(e) {
+            e.stopPropagation();
+            if (bgm.paused) {
+                playBgm();
+            } else {
+                bgm.pause();
+                musicBtn.classList.remove('playing');
+                musicBtn.innerText = '🚫';
+            }
+        }
+
+        function playBgm() {
+            bgm.volume = 0;
+            bgm.play().then(() => {
+                musicBtn.classList.add('playing');
+                musicBtn.innerText = '🎵';
+                // 淡入
+                let vol = 0;
+                const fade = setInterval(() => {
+                    vol += 0.05;
+                    if (vol >= 0.6) {
+                        clearInterval(fade);
+                        bgm.volume = 0.6;
+                    } else {
+                        bgm.volume = vol;
+                    }
+                }, 200);
+            }).catch(e => {
+                console.log("Wait for interaction");
+                musicBtn.innerText = '🚫';
+            });
+        }
+
+        // ================= 业务逻辑 =================  
+
+        // 阶段 1: 开启回忆
+        function startMemories() {
+            playBgm(); // 尝试播放音乐
+            showStage('stage-1-memory');
+            renderMemory(0);
+        }
+
+        function renderMemory(index) {
+            currentMemIndex = index;
+            const data = MEMORIES[index];
+            const titleEl = document.getElementById('mem-title');
+            const textEl = document.getElementById('mem-text');
+            const btn = document.getElementById('btn-mem');
+
+            titleEl.innerText = `Memories ${data.t}`;
+            btn.classList.add('disabled'); // 禁用按钮直到打字完成
+
+            typeWriter(textEl, data.c, () => {
+                enableBtn('btn-mem');
+            });
+        }
+
+        function nextMemory() {
+            if (currentMemIndex < MEMORIES.length - 1) {
+                renderMemory(currentMemIndex + 1);
+            } else {
+                // 回忆结束，进入 Invite
+                showStage('stage-2-invite');
+                setTimeout(() => {
+                    typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
+                        enableBtn('btn-invite');
+                    });
+                }, 500);
+            }
+        }
+
+        // 阶段 2: 开始游戏
+        function startGame() {
+            document.getElementById('stage-2-invite').classList.remove('active'); // 隐藏 Dialog
+            initHeartGame();
+        }
+
+        function initHeartGame() {
+            isGameActive = true;
+            const layer = document.getElementById('game-layer');
+            const hint = document.getElementById('click-hint');
+            
+            hint.classList.add('active');
+            
+            // 动态计算心形尺寸
+            // 保证在任何屏幕比例下都不溢出
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const minDim = Math.min(w, h);
+            // 基础缩放：在小屏上缩小间距
+            const scale = minDim < 400 ? 11 : (minDim < 600 ? 14 : 18); 
+            const offsetX = w / 2;
+            const offsetY = h / 2;
+
+            MESSAGES.forEach((msg, i) => {
+                const t = (i / MESSAGES.length) * 2 * Math.PI;
+                // 心形方程
+                let x = 16 * Math.pow(Math.sin(t), 3);
+                let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                
+                // 应用缩放
+                x = x * scale + offsetX;
+                y = y * scale + offsetY;
+
+                const box = document.createElement('div');
+                box.className = 'msg-box';
+                box.innerText = msg;
+                box.style.left = (x - 30) + 'px'; // 30是半宽
+                box.style.top = (y - 30) + 'px';
+                
+                // 依次浮现动画
+                setTimeout(() => {
+                    box.classList.add('visible');
+                }, i * 50);
+
+                // 绑定点击
+                box.addEventListener('touchstart', (e) => collectBox(e, box), {passive:false});
+                box.addEventListener('click', (e) => collectBox(e, box));
+
+                layer.appendChild(box);
+                createdBoxes.push(box);
+            });
+        }
+
+        function collectBox(e, box) {
+            e.preventDefault(); // 防止双重触发
+            if (box.classList.contains('collected')) return;
+
+            // 粒子特效
+            createParticles(e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY);
+
+            box.classList.add('collected');
+            collectedCount++;
+            
+            const hint = document.getElementById('click-hint');
+            hint.innerText = `👆 点击屏幕收集祝福 (${collectedCount}/${MESSAGES.length})`;
+
+            if (collectedCount === MESSAGES.length) {
+                hint.innerText = "🎉 收集完成！";
+                setTimeout(finishGame, 1000);
+            }
+        }
+
+        function createParticles(x, y) {
+            for(let i=0; i<8; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.backgroundColor = ['#FF8FA3', '#FFE577', '#B5EAD7'][Math.floor(Math.random()*3)];
+                
+                // 随机爆炸方向
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 50 + 20;
+                const tx = Math.cos(angle) * dist + 'px';
+                const ty = Math.sin(angle) * dist + 'px';
+                p.style.setProperty('--tx', tx);
+                p.style.setProperty('--ty', ty);
+                
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 600);
+            }
+        }
+
+        function finishGame() {
+            document.getElementById('game-layer').style.display = 'none';
+            document.getElementById('click-hint').style.display = 'none';
+            showStage('stage-3-card');
+        }
+
+        // 阶段 3: 最终页面
+        function revealFinal() {
+            const cardStage = document.getElementById('stage-3-card');
+            cardStage.classList.add('fade-out'); // 向上淡出
+            setTimeout(() => {
+                cardStage.style.display = 'none';
+                document.getElementById('main-scene').classList.add('active');
+            }, 600);
+        }
+
+        // ================= 视觉特效 =================  
+        function createSnow() {
+            const c = document.getElementById('snow-container');
+            if (c.childElementCount > 30) return; // 限制数量优化性能
+
+            const s = document.createElement('div');
+            s.classList.add('snowflake');
+            const size = Math.random() * 8 + 5 + 'px';
+            s.style.width = size; s.style.height = size;
+            s.style.left = Math.random() * 100 + 'vw';
+            s.style.opacity = Math.random() * 0.5 + 0.3;
+            
+            // 随机模糊
+            if (Math.random() > 0.5) s.style.filter = 'blur(1px)';
+
+            const d = Math.random() * 5 + 5 + 's';
+            s.style.animation = `fall ${d} linear infinite`;
+            c.appendChild(s);
+            setTimeout(() => s.remove(), parseFloat(d) * 1000);
+        }
+    </script>  
+</body>  
+</html>
