@@ -1,52 +1,285 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Merry Christmas! 🎄</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --primary: #FF8FA3;
-            --secondary: #B5EAD7;
-            --text-color: #D4A373;
-            --bg-warm: #FFFBF0;
-        }
-        body {
-            background-color: var(--bg-warm);
-            color: var(--text-color);
-            font-family: 'Nunito', 'Ma Shan Zheng', sans-serif;
-            overflow: hidden;
-            margin: 0;
-            height: 100dvh;
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <!-- 禁用缩放，优化移动端体验，解决 iOS 点击延迟 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+    <title>Merry Christmas! 🎄</title>  
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">  
+  
+    <style>  
+        /* --- 1. 核心配色与基础设置 --- */  
+        :root {  
+            --bg-color: #FFFBF0;        
+            --primary: #FF8FA3;         
+            --secondary: #B5EAD7;       
+            --text-color: #D4A373;      
+            --accent: #FFE577;          
+            --card-bg: #FFFFFF;  
+            --paper-color: #FFF8E7;  
+        }  
+  
+        * { margin: 0; padding: 0; box-sizing: border-box; }  
+  
+        body {  
+            background-color: var(--bg-color);
+            color: var(--text-color);  
+            font-family: 'Nunito', 'Ma Shan Zheng', sans-serif;   
+            overflow: hidden;   
+            height: 100vh; height: 100dvh; width: 100vw;  
+            cursor: default;   
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            transition: background-color 1s ease; /* 背景色平滑过渡 */
+        }  
+
+        /* --- Loading Screen --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
         }
+        .loader {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loading-text {
+            margin-top: 15px; font-family: 'Fredoka One'; color: var(--primary);
+        }
+
+        /* --- Background Layers --- */
         
-        /* 通用动画定义 */
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
-        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) translateX(0); opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg) translateX(20px); opacity: 0; } }
-        @keyframes fly-right { 0% { transform: translate(-10vw, 10vh) rotate(5deg) scale(0.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(110vw, -20vh) rotate(-10deg) scale(1); opacity: 1; } }
-        @keyframes bubble-up { 0% { transform: translateY(100vh) scale(0.5); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1.2); opacity: 0; } }
-        @keyframes pulse-warm { 0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4); transform: scale(0.95); } 70% { box-shadow: 0 0 0 50px rgba(255, 165, 0, 0); transform: scale(1); } 100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); transform: scale(0.95); } }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
-        @keyframes shooting-star { 0% { transform: translateX(0) translateY(0) rotate(-45deg) scale(1); opacity: 1; } 100% { transform: translateX(-100vh) translateY(100vh) rotate(-45deg) scale(1); opacity: 0; } }
-        @keyframes rise { 0% { bottom: -100px; transform: translateX(0); } 50% { transform: translateX(10px); } 100% { bottom: 100vh; transform: translateX(-10px); } }
-        
-        .animate-gradient { background-size: 300% 300%; animation: gradientBG 10s ease infinite; }
-        .font-hand { font-family: 'Ma Shan Zheng', cursive; }
-        .font-title { font-family: 'Fredoka One', cursive; }
-        
-        /* 滚动条隐藏 */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+        /* 1. 基础背景层 (渐变/图标) */
+        #bg-base-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none; overflow: hidden;
+            background: linear-gradient(-45deg, #fff5f5, #e8f5e9, #fffde7, #fff0f5);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            transition: opacity 1s ease;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. 特效层 (回忆专属动画) */
+        #theme-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none; overflow: hidden;
+        }
+
+        /* 3. 全局雪花层 (默认最上层，但不会挡住弹窗) */
+        #snow-container {  
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
+            pointer-events: none; z-index: 2; 
+        } 
+
+        /* --- 顶部装饰 --- */
+        .light-rope {
+            position: fixed; top: -15px; left: 0; width: 100%; height: 60px;
+            z-index: 100; pointer-events: none;
+            display: flex; justify-content: space-around;
+            overflow: hidden;
+        }
+        .light-bulb {
+            position: relative; width: 16px; height: 36px; border-radius: 50%;
+            background: #fff; margin-top: 10px;
+            animation: swing 3s ease-in-out infinite alternate, glow 1.5s infinite alternate;
+        }
+        .light-bulb::before {
+            content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 8px; background: #444;
+        }
+        .light-wire {
+            position: absolute; top: -5px; left: 0; width: 100%; height: 25px;
+            border-bottom: 2px solid #444; border-radius: 50%; z-index: 99;
+        }
+        .light-bulb:nth-child(2n) { background: #FF8FA3; box-shadow: 0 5px 15px rgba(255, 143, 163, 0.6); animation-delay: 0.2s; }
+        .light-bulb:nth-child(2n+1) { background: #B5EAD7; box-shadow: 0 5px 15px rgba(181, 234, 215, 0.6); animation-delay: 0.5s; }
+        .light-bulb:nth-child(3n) { background: #FFE577; box-shadow: 0 5px 15px rgba(255, 229, 119, 0.6); animation-delay: 0.8s; }
+        @keyframes swing { 0% { transform: rotate(-3deg); } 100% { transform: rotate(3deg); } }
+        @keyframes glow { 0% { opacity: 0.7; } 100% { opacity: 1; transform: scale(1.1); } }
+
+        /* --- Music Control --- */
+        #music-control {
+            position: fixed; top: 20px; right: 20px;
+            width: 44px; height: 44px; 
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 22px;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        #music-control:active { transform: scale(0.9); }
+        #music-control.playing { animation: spin 4s linear infinite; color: var(--primary); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+  
+        /* --- Stage Layout --- */  
+        .overlay-stage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s, backdrop-filter 0.8s;
+            opacity: 0; visibility: hidden;
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            z-index: 500;
+        }
+        .overlay-stage.active { 
+            opacity: 1; visibility: visible; 
+            backdrop-filter: blur(3px); /* 稍微模糊背景，突出文字 */
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        /* --- Dialog Box --- */
+        .dialog-box {  
+            background-color: var(--paper-color);  
+            width: 88%; max-width: 480px; padding: 35px 30px; 
+            border-radius: 24px;  
+            border: 3px solid var(--text-color);  
+            box-shadow: 8px 8px 0px rgba(212, 163, 115, 0.4);  
+            position: relative; 
+            max-height: 85vh; overflow-y: auto; 
+            transform: scale(0.9) translateY(20px); opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+            /* 保证对话框在特效之上 */
+            z-index: 501;
+        }
+        .overlay-stage.active .dialog-box { transform: scale(1) translateY(0); opacity: 1; }
+  
+        .dialog-pin {  
+            position: absolute; top: 16px; left: 50%; transform: translateX(-50%);  
+            width: 16px; height: 16px; background: var(--primary); border-radius: 50%;  
+            box-shadow: inset 2px 2px 4px rgba(255,255,255,0.6);  
+        }  
+        .dialog-content {  
+            margin-top: 20px; font-family: 'Ma Shan Zheng', cursive; font-size: 1.3rem;  
+            line-height: 1.8; color: #5d4037; text-align: left; min-height: 80px;
+        }
+        .typing-cursor::after { content: '|'; animation: blink 1s infinite; color: var(--primary); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .action-btn {  
+            background-color: var(--primary); color: white;  
+            font-family: 'Fredoka One'; font-size: 1.1rem; letter-spacing: 1px;
+            padding: 12px 32px; border: none; border-radius: 50px;  
+            margin-top: 25px; cursor: pointer; float: right;  
+            box-shadow: 0 4px 0 #d86c7f;  
+            transition: transform 0.1s, box-shadow 0.1s;
+            user-select: none;
+        }  
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }  
+        .action-btn.disabled { opacity: 0.6; pointer-events: none; filter: grayscale(1); }
+
+        /* --- Heart Animation Layer --- */  
+        #game-layer {  
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 600; pointer-events: none;   
+        }  
+        .msg-box {  
+            position: absolute; width: 60px; height: 60px; 
+            background: white; border-radius: 16px; 
+            display: flex; align-items: center; justify-content: center;  
+            text-align: center; padding: 2px; 
+            font-size: 15px; font-weight: bold; color: #8d6e63; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);  
+            font-family: 'Ma Shan Zheng', cursive; 
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 0; transform: scale(0);
+        }  
+        .msg-box:nth-child(4n+1) { background: #FFD1DC; color: #fff; }  
+        .msg-box:nth-child(4n+2) { background: #E2F0CB; color: #779966; }  
+        .msg-box:nth-child(4n+3) { background: #FFF5BA; color: #D4A373; }  
+        .msg-box:nth-child(4n+4) { background: #FFFFFF; color: #FF8FA3; border: 2px solid #FF8FA3; }  
+
+        /* --- Final Gift Card --- */  
+        .welcome-card {  
+            background: var(--card-bg); width: 90%; max-width: 450px; padding: 40px 30px;  
+            border-radius: 30px; border: 4px dashed var(--primary);  
+            box-shadow: 0 20px 50px rgba(212, 163, 115, 0.2); text-align: center;  
+            transform: translateY(40px); opacity: 0; transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);   
+        }  
+        .overlay-stage.active .welcome-card { transform: translateY(0); opacity: 1; }  
+        .ribbon { position: absolute; top: -10px; right: -10px; width: 80px; height: 80px; background: var(--secondary); border-radius: 50%; opacity: 0.5; z-index: -1; }  
+        .memory-lane { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; margin-top: 20px;}  
+        .polaroid { background: white; padding: 6px 6px 20px 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transform: rotate(-5deg); width: 90px; border: 1px solid #f0f0f0; }  
+        .polaroid:nth-child(2) { transform: rotate(5deg) translateY(8px); }  
+        .polaroid-img { width: 100%; height: 65px; background-color: #FFD1DC; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }  
+
+        /* --- Final Scene --- */  
+        #main-scene {  
+            position: relative; z-index: 10; display: flex; flex-direction: column;  
+            align-items: center; justify-content: center; height: 100%; text-align: center;  
+            transition: filter 1s ease, opacity 1s; filter: blur(10px); opacity: 0; pointer-events: none;
+        }  
+        #main-scene.active { filter: blur(0); opacity: 1; pointer-events: auto; }  
+        .snow-ground { position: fixed; bottom: -40px; left: 0; width: 100%; height: 120px; background: white; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: scaleX(1.5); z-index: 2; }  
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg); opacity: 0; } }  
+        .snowflake { position: absolute; background: white; border-radius: 50%; opacity: 0.8; pointer-events: none; } 
+        #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 1s ease; }
+
+        /* =========================================
+           THEME ANIMATIONS (Unique for each memory)
+           ========================================= */
+
+        /* Theme 1: Sakura (初识) */
+        .fx-sakura { position: absolute; font-size: 1.5rem; animation: sakuraFall linear infinite; opacity: 0.8; }
+        @keyframes sakuraFall { 0% { transform: translateY(-10vh) rotate(0deg) translateX(0); } 100% { transform: translateY(110vh) rotate(360deg) translateX(20px); } }
+
+        /* Theme 2: Paper Plane (分享) */
+        .fx-plane { position: absolute; font-size: 2.5rem; animation: planeFly linear infinite; opacity: 0.9; }
+        @keyframes planeFly { 
+            0% { transform: translate(-20vw, 10vh) rotate(10deg) scale(0.5); opacity: 0; } 
+            20% { opacity: 1; }
+            100% { transform: translate(120vw, -30vh) rotate(-10deg) scale(1); opacity: 1; } 
+        }
+
+        /* Theme 3: Gaming (游戏) */
+        /* 游戏主题需要深色背景配合 */
+        .fx-game-icon { position: absolute; font-size: 3rem; animation: gamePop infinite alternate; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+        .fx-game-vs { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15rem; font-weight: 900; color: rgba(255,255,255,0.05); font-family: 'Fredoka One'; animation: pulseVs 2s infinite; }
+        @keyframes gamePop { 0% { transform: scale(1) rotate(-5deg); } 100% { transform: scale(1.1) rotate(5deg); } }
+        @keyframes pulseVs { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } }
+
+        /* Theme 4: Warmth (支撑) */
+        .fx-warm-glow { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80vw; height: 80vw; background: radial-gradient(circle, rgba(255, 165, 0, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%; animation: warmPulse 4s infinite ease-in-out;
+        }
+        @keyframes warmPulse { 0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.2); } }
+
+        /* Theme 5: Laughter (欢笑) */
+        .fx-laugh { position: absolute; font-size: 2.5rem; animation: floatBubble linear infinite; }
+        @keyframes floatBubble { 0% { transform: translateY(110vh) scale(0.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1.2); opacity: 0; } }
+
+        /* Theme 6: Winter (过冬) */
+        .fx-frost { position: absolute; inset: 0; box-shadow: inset 0 0 100px rgba(200, 230, 255, 0.8); pointer-events: none; z-index: 10; }
+
+        /* Theme 7: Stars (许愿) */
+        .fx-star { position: absolute; background: white; border-radius: 50%; animation: twinkle 2s infinite alternate; }
+        .fx-shooting-star { 
+            position: absolute; width: 100px; height: 2px; background: linear-gradient(90deg, white, transparent);
+            transform: rotate(-45deg); animation: shootStar 3s linear infinite; opacity: 0;
+        }
+        @keyframes twinkle { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        @keyframes shootStar { 0% { transform: translate(0, 0) rotate(-45deg); opacity: 1; } 20% { opacity: 1; } 100% { transform: translate(-50vw, 50vh) rotate(-45deg); opacity: 0; } }
+
+        /* Theme 8: Balloons (陪伴) */
+        .fx-balloon { position: absolute; font-size: 3rem; animation: balloonRise linear infinite; }
+        @keyframes balloonRise { 0% { transform: translateY(110vh) translateX(0); } 50% { transform: translateY(50vh) translateX(20px); } 100% { transform: translateY(-20vh) translateX(-20px); } }
+
+        /* Theme 9: Golden (祝福) */
+        .fx-gold { position: absolute; width: 6px; height: 6px; background: #FFD700; border-radius: 50%; animation: goldRain linear infinite; box-shadow: 0 0 5px #FFD700; }
+        @keyframes goldRain { 0% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(110vh); opacity: 0; } }
+
+    </style>  
 <script type="importmap">
 {
   "imports": {
@@ -55,290 +288,459 @@
   }
 }
 </script>
-</head>
-<body>
-    <div id="root"></div>
+</head>  
+<body>  
+    
+    <!-- 资源加载页 -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <div class="loading-text">Loading Memories...</div>
+    </div>
 
-    <script type="text/babel">
-        // --- CONSTANTS ---
-        const MUSIC_URL = "https://actions.google.com/sounds/v1/holiday/jingle_bells.ogg";
+    <!-- 顶部彩灯装饰 -->
+    <div class="light-rope">
+        <div class="light-wire"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+    </div>
+
+    <!-- 0. 基础渐变背景 -->
+    <div id="bg-base-layer"></div>
+
+    <!-- 1. 主题特效层 (回忆时动态变化) -->
+    <div id="theme-layer"></div>
+
+    <!-- 2. 全局雪花层 -->
+    <div id="snow-container"></div>  
+
+    <!-- 闪光转场层 -->
+    <div id="flash-overlay"></div>
+
+    <!-- 背景音乐 (预加载) -->
+    <audio id="bgm" loop preload="auto">
+        <source src="https://actions.google.com/sounds/v1/holiday/jingle_bells.ogg" type="audio/ogg">
+    </audio>
+    <div id="music-control" onclick="toggleMusic(event)">🎵</div>
+  
+    <!-- 序章 -->  
+    <div id="stage-0-intro" class="overlay-stage">  
+        <div class="dialog-box">  
+            <div class="dialog-pin"></div>  
+            <h3 style="color: #D4A373; font-size: 1.5rem; font-family: 'Fredoka One'; margin-bottom: 10px;">  
+                To: 最可爱的小胡同学 📝  
+            </h3>  
+            <div class="dialog-content" id="intro-text"></div>  
+            <button class="action-btn disabled" id="btn-intro" onclick="startMemories()">开启回忆 &gt;</button>  
+        </div>  
+    </div>  
+  
+    <!-- 回忆播放器 -->  
+    <div id="stage-1-memory" class="overlay-stage">  
+        <div class="dialog-box">  
+            <div class="dialog-pin"></div>  
+            <h3 id="mem-title" style="color: #D4A373; font-size: 1.4rem; font-family: 'Fredoka One';"></h3>  
+            <div class="dialog-content typing-cursor" id="mem-text"></div>  
+            <button class="action-btn disabled" id="btn-mem" onclick="nextMemory()">下一步 &gt;</button>  
+        </div>
+    </div>  
+  
+    <!-- 游戏引导 -->  
+    <div id="stage-2-invite" class="overlay-stage">  
+        <div class="dialog-box">  
+            <div class="dialog-pin"></div>  
+            <h3 style="color: #D4A373; font-size: 1.5rem; font-family: 'Fredoka One'; margin-bottom: 10px;">  
+                To: 最可爱的小胡同学 📝  
+            </h3>  
+            <div class="dialog-content" id="invite-text"></div>  
+            <button class="action-btn disabled" id="btn-invite" onclick="startHeartAnimation()">  
+                接收祝福 ✨  
+            </button>  
+        </div>  
+    </div>  
+  
+    <!-- 爱心动画层 -->  
+    <div id="game-layer"></div>  
+  
+    <!-- 礼物卡片 -->  
+    <div id="stage-3-card" class="overlay-stage">  
+        <div class="welcome-card">  
+            <div class="ribbon"></div>  
+            <h2 class="card-title">To: 亲爱的你 ✨</h2>  
+            <p class="card-text" style="font-size: 1.2rem;">  
+                集齐啦！<br>每一个方块都是我的心意。<br>圣诞快乐！  
+            </p>  
+            <div class="memory-lane">  
+                <div class="polaroid"><div class="polaroid-img">🍬</div></div>  
+                <div class="polaroid"><div class="polaroid-img">🌟</div></div>  
+            </div>  
+            <button class="action-btn" style="float:none;" onclick="revealFinal()">拆开礼物 🎁</button>  
+        </div>  
+    </div>  
+  
+    <!-- 最终场景 -->  
+    <div id="main-scene">  
+        <h1 style="font-family: 'Fredoka One'; font-size: 3.2rem; color: #FF8FA3; margin-bottom: 15px; text-shadow: 2px 2px 0px #fff;">Merry Christmas!</h1>  
+        <div style="font-size: 5rem; cursor: pointer; animation: float 3s infinite ease-in-out;">🦌</div>  
+        <p style="margin-top: 20px; color: #D4A373; font-weight: bold; font-size: 1.2rem;">属于你的可爱冬天</p>  
+    </div>  
+    <div class="snow-ground"></div>  
+  
+    <script>  
+        // ================= 数据配置 =================  
         
+        const INTRO_TEXT = "这是我们认识后我陪你度过的第一个圣诞节\n谨以此纪念我们的友谊\n在这个寒冷的冬天，希望可以为你带来一丝温暖";
+        const INVITE_TEXT = "Hello，圣诞快乐！\n这里有一份特别的礼物送给你。\n准备好了吗？";
+
+        const MESSAGES = [  
+            "🍎平安", "💰暴富", "🍀好运", "❤️Love",   
+            "✨闪耀", "🎄Xmas", "🎁礼物", "💪加油",   
+            "🍬甜蜜", "🐱可爱", "🌈美好", "🚀上岸",   
+            "🎉欢庆", "❄️纯洁", "🌟希望", "🏖️自由",   
+            "😄开心", "🐟锦鲤", "🏠温馨", "👭友谊",  
+            "🍰幸福", "🌙晚安", "🧸陪伴", "🎶快乐"  
+        ];  
+
         const MEMORIES = [
-            { title: "初识 (1/9)", icon: "🌱", content: "还记得我们刚认识的时候吗？\n那时虽然有些拘谨，\n但每一次对话都让我觉得特别投缘。\n像是春风吹进了心里。", theme: "sakura" },
-            { title: "分享 (2/9)", icon: "📱", content: "后来我们越来越熟悉，\n开始分享彼此的喜怒哀乐，\n哪怕是生活里的芝麻小事，\n也总想第一时间告诉你。", theme: "paper-plane" },
-            { title: "干饭 (3/9)", icon: "🍲", content: "最开心的就是和你一起讨论好吃的！\n不管是火锅、奶茶还是甜点...\n你绝对是全世界最棒的饭搭子！", theme: "food" },
-            { title: "支撑 (4/9)", icon: "💪", content: "当然也有一起emo的时候，\n互相吐槽生活的不易、工作的烦恼。\n但只要互相打打气，\n好像就又有了继续升级打怪的动力。", theme: "warmth" },
-            { title: "欢笑 (5/9)", icon: "😂", content: "谢谢你总是能接住我的奇奇怪怪，\n那些只有我们懂的梗，\n每次想起来都会忍不住嘴角上扬。\n和你聊天真的超级轻松快乐。", theme: "laughter" },
-            { title: "过冬 (6/9)", icon: "❄️", content: "不知不觉，\n又一起走过了一个春夏秋冬，\n迎来了这个浪漫的圣诞节。\n因为有你，这个冬天好像也没那么冷了。", theme: "winter" },
-            { title: "许愿 (7/9)", icon: "✨", content: "圣诞节到了，\n想把星星摘下来送给你，\n想把世界上最美好的祝福都给你。\n希望你每天都能遇见属于你的小确幸。", theme: "stars" },
-            { title: "陪伴 (8/9)", icon: "🎈", content: "谢谢你出现在我的生命里，\n成为我特别的朋友。\n希望在未来的日子里，\n我们可以继续一起大笑，一起可可爱爱。", theme: "balloons" },
-            { title: "祝福 (9/9)", icon: "🎄", content: "最后，\n亲爱的小胡同学，\n愿你永远被爱包围，万事胜意！\n圣诞快乐，不止圣诞，每天都快乐！", theme: "gold" }
+            { t: "(1/9) 🌱", c: "还记得我们刚认识的时候吗？\n那时虽然有些拘谨，\n但每一次对话都让我觉得特别投缘。\n像是春风吹进了心里。", theme: 'sakura' },
+            { t: "(2/9) 📱", c: "后来我们越来越熟悉，\n开始分享彼此的喜怒哀乐，\n哪怕是生活里的芝麻小事，\n也总想第一时间告诉你。", theme: 'planes' },
+            { t: "(3/9) 🎮", c: "最开心的就是和你一起打游戏！\n不管是王者荣耀还是和平精英...\n每一次组队开黑，\n都是我们专属的快乐时光！", theme: 'gaming' },
+            { t: "(4/9) 💪", c: "当然也有一起emo的时候，\n互相吐槽生活的不易、工作的烦恼。\n但只要互相打打气，\n好像就又有了继续升级打怪的动力。", theme: 'warmth' },
+            { t: "(5/9) 😂", c: "谢谢你总是能接住我的奇奇怪怪，\n那些只有我们懂的梗，\n每次想起来都会忍不住嘴角上扬。\n和你聊天真的超级轻松快乐。", theme: 'laugh' },
+            { t: "(6/9) ❄️", c: "不知不觉，\n又一起走过了一个春夏秋冬，\n迎来了这个浪漫的圣诞节。\n因为有你，这个冬天好像也没那么冷了。", theme: 'winter' },
+            { t: "(7/9) ✨", c: "圣诞节到了，\n想把星星摘下来送给你，\n想把世界上最美好的祝福都给你。\n希望你每天都能遇见属于你的小确幸。", theme: 'stars' },
+            { t: "(8/9) 🎈", c: "谢谢你出现在我的生命里，\n成为我特别的朋友。\n希望在未来的日子里，\n我们可以继续一起大笑，一起可可爱爱。", theme: 'balloons' },
+            { t: "(9/9) 🎄", c: "最后，\n亲爱的小胡同学，\n愿你永远被爱包围，万事胜意！\n圣诞快乐，不止圣诞，每天都快乐！", theme: 'gold' }
         ];
+  
+        // ================= 系统变量 =================  
+        const bgm = document.getElementById('bgm');
+        const musicBtn = document.getElementById('music-control');
+        let currentMemIndex = 0;
 
-        const HEART_MESSAGES = [
-            "🍎平安", "💰暴富", "🍀好运", "❤️Love", "✨闪耀", "🎄Xmas", 
-            "🎁礼物", "💪加油", "🍬甜蜜", "🐱可爱", "🌈美好", "🚀上岸",
-            "🎉欢庆", "❄️纯洁", "🌟希望", "🏖️自由", "😄开心", "🐟锦鲤", 
-            "🏠温馨", "👭友谊", "🍰幸福", "🌙晚安", "🧸陪伴", "🎶快乐"
-        ];
+        // ================= 初始化 =================  
+        window.onload = async () => {
+            await document.fonts.ready;
+            const loader = document.getElementById('loading-screen');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 800);
 
-        // --- COMPONENTS ---
+            showStage('stage-0-intro');
+            spawnBgIcon(); // 简单的首页漂浮物
+            
+            setTimeout(() => {
+                typeWriter(document.getElementById('intro-text'), INTRO_TEXT, () => {
+                    enableBtn('btn-intro');
+                });
+            }, 800);
 
-        // 1. 粒子特效生成器
-        const ParticleSystem = ({ type, count, elements, animation, className = "" }) => {
-            const [items, setItems] = React.useState([]);
-
-            React.useEffect(() => {
-                const newItems = Array.from({ length: count }).map((_, i) => ({
-                    id: i,
-                    left: Math.random() * 100,
-                    delay: Math.random() * 5,
-                    duration: Math.random() * 3 + 4, // 4-7s
-                    size: Math.random() * 1.5 + 1, // 1-2.5rem
-                    el: elements[Math.floor(Math.random() * elements.length)]
-                }));
-                setItems(newItems);
-            }, [type]);
-
-            return (
-                <div className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}>
-                    {items.map(item => (
-                        <div 
-                            key={item.id}
-                            className="absolute flex items-center justify-center text-2xl opacity-80"
-                            style={{
-                                left: `${item.left}%`,
-                                fontSize: `${item.size}rem`,
-                                animation: `${animation} ${item.duration}s linear infinite`,
-                                animationDelay: `${item.delay}s`,
-                                top: animation === 'rise' || animation === 'bubble-up' ? '100%' : '-50px'
-                            }}
-                        >
-                            {item.el}
-                        </div>
-                    ))}
-                </div>
-            );
+            setInterval(createSnow, 200);
         };
 
-        // 2. 回忆特效层 - 核心修改部分
-        const MemoryEffects = ({ theme }) => {
-            switch (theme) {
-                case 'sakura': // 初识：樱花雨
-                    return (
-                        <div className="fixed inset-0 bg-pink-50/30 transition-colors duration-1000">
-                            <ParticleSystem type="sakura" count={20} elements={['🌸', '💮']} animation="fall" />
-                        </div>
-                    );
-                case 'paper-plane': // 分享：纸飞机
-                    return (
-                        <div className="fixed inset-0 bg-blue-50/30 transition-colors duration-1000">
-                            <ParticleSystem type="plane" count={8} elements={['✈️', '📨', '☁️']} animation="fly-right" />
-                        </div>
-                    );
-                case 'food': // 干饭：漂浮美食
-                    return (
-                        <div className="fixed inset-0 bg-orange-50/30 transition-colors duration-1000">
-                            <ParticleSystem type="food" count={15} elements={['🍲', '🥤', '🍰', '🍔', '🥟']} animation="bubble-up" />
-                        </div>
-                    );
-                case 'warmth': // 支撑：暖阳
-                    return (
-                        <div className="fixed inset-0 bg-slate-800/60 transition-colors duration-1000 flex items-center justify-center">
-                            <div className="w-[300px] h-[300px] bg-orange-300/80 rounded-full blur-[60px] animate-[pulse-warm_4s_infinite]"></div>
-                            <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPg==')]"></div>
-                        </div>
-                    );
-                case 'laughter': // 欢笑：表情包喷泉
-                    return (
-                        <div className="fixed inset-0 bg-yellow-50/30 transition-colors duration-1000">
-                            <ParticleSystem type="lol" count={25} elements={['😂', '🤣', '😹', '😆', '🤭']} animation="bubble-up" />
-                        </div>
-                    );
-                case 'winter': // 过冬：冰雪
-                    return (
-                        <div className="fixed inset-0 bg-slate-100/50 transition-colors duration-1000">
-                            <div className="absolute inset-0 border-[20px] border-white/40 blur-md pointer-events-none rounded-lg"></div>
-                            <ParticleSystem type="snow" count={30} elements={['❄️', '🌨️']} animation="fall" />
-                        </div>
-                    );
-                case 'stars': // 许愿：星空
-                    return (
-                        <div className="fixed inset-0 bg-indigo-900/80 transition-colors duration-1000">
-                            <ParticleSystem type="star" count={30} elements={['✨', '🌟', '⭐']} animation="twinkle" />
-                            {/* 流星 */}
-                             <div className="absolute top-10 right-10 text-4xl animate-[shooting-star_3s_ease-in-out_infinite] opacity-0">💫</div>
-                             <div className="absolute top-40 right-1/3 text-2xl animate-[shooting-star_5s_ease-in-out_infinite_1s] opacity-0">💫</div>
-                        </div>
-                    );
-                case 'balloons': // 陪伴：气球
-                    return (
-                        <div className="fixed inset-0 bg-purple-50/30 transition-colors duration-1000">
-                            <ParticleSystem type="balloon" count={15} elements={['🎈', '🧸', '🎀']} animation="rise" />
-                        </div>
-                    );
-                case 'gold': // 祝福：金色圣诞
-                    return (
-                        <div className="fixed inset-0 bg-red-50/30 transition-colors duration-1000">
-                            <ParticleSystem type="gold" count={30} elements={['🎁', '🎄', '🔔', '💰']} animation="fall" />
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-yellow-100/20 to-transparent animate-pulse"></div>
-                        </div>
-                    );
+        // ================= 特效引擎 (Theme Engine) =================  
+        function applyTheme(theme) {
+            const layer = document.getElementById('theme-layer');
+            const body = document.body;
+            layer.innerHTML = ''; // 清除旧特效
+            
+            // 默认背景
+            body.style.backgroundColor = '#FFFBF0';
+            document.getElementById('bg-base-layer').style.opacity = '1';
+
+            switch(theme) {
+                case 'sakura': // 1. 樱花
+                    createParticles(layer, '🌸', 20, 'fx-sakura', 5, 10);
+                    break;
+                case 'planes': // 2. 纸飞机
+                    createParticles(layer, '✈️', 6, 'fx-plane', 8, 15);
+                    break;
+                case 'gaming': // 3. 游戏 (深色电竞风)
+                    document.getElementById('bg-base-layer').style.opacity = '0.1'; // 压暗背景
+                    body.style.backgroundColor = '#1a103c'; // 深蓝紫
+                    // VS 水印
+                    const vs = document.createElement('div');
+                    vs.className = 'fx-game-vs'; vs.innerText = 'VS';
+                    layer.appendChild(vs);
+                    // 游戏元素
+                    const icons = ['🎮', '⚡', '🔥', '👾', '⚔️', '🏆'];
+                    for(let i=0; i<15; i++) {
+                        const p = document.createElement('div');
+                        p.className = 'fx-game-icon';
+                        p.innerText = icons[Math.floor(Math.random()*icons.length)];
+                        p.style.left = Math.random()*90 + 5 + 'vw';
+                        p.style.top = Math.random()*90 + 5 + 'vh';
+                        p.style.animationDelay = Math.random()*2 + 's';
+                        layer.appendChild(p);
+                    }
+                    break;
+                case 'warmth': // 4. 暖阳
+                    document.getElementById('bg-base-layer').style.opacity = '0.2';
+                    body.style.backgroundColor = '#2c3e50';
+                    const glow = document.createElement('div');
+                    glow.className = 'fx-warm-glow';
+                    layer.appendChild(glow);
+                    break;
+                case 'laugh': // 5. 欢笑
+                    createParticles(layer, ['😂','🤣','😹','😆'][Math.floor(Math.random()*4)], 15, 'fx-laugh', 4, 8, true);
+                    break;
+                case 'winter': // 6. 过冬
+                    const frost = document.createElement('div');
+                    frost.className = 'fx-frost';
+                    layer.appendChild(frost);
+                    // 加大雪量
+                    for(let i=0; i<20; i++) setTimeout(createSnow, i*50);
+                    break;
+                case 'stars': // 7. 星空
+                    document.getElementById('bg-base-layer').style.opacity = '0';
+                    body.style.backgroundColor = '#0f172a'; // 深夜蓝
+                    // 星星
+                    for(let i=0; i<50; i++) {
+                        const s = document.createElement('div');
+                        s.className = 'fx-star';
+                        const sz = Math.random()*3 + 1 + 'px';
+                        s.style.width = sz; s.style.height = sz;
+                        s.style.left = Math.random()*100 + 'vw'; s.style.top = Math.random()*100 + 'vh';
+                        s.style.animationDelay = Math.random()*2 + 's';
+                        layer.appendChild(s);
+                    }
+                    // 流星
+                    for(let i=0; i<3; i++) {
+                        const ss = document.createElement('div');
+                        ss.className = 'fx-shooting-star';
+                        ss.style.top = Math.random()*30 + 'vh';
+                        ss.style.right = Math.random()*30 + 'vw';
+                        ss.style.animationDelay = i*2 + 's';
+                        layer.appendChild(ss);
+                    }
+                    break;
+                case 'balloons': // 8. 气球
+                    createParticles(layer, '🎈', 12, 'fx-balloon', 6, 12, true);
+                    break;
+                case 'gold': // 9. 金色
+                    document.getElementById('bg-base-layer').style.opacity = '0.5';
+                    body.style.backgroundColor = '#fffbe6';
+                    for(let i=0; i<40; i++) {
+                        const g = document.createElement('div');
+                        g.className = 'fx-gold';
+                        g.style.left = Math.random()*100 + 'vw';
+                        g.style.animationDuration = Math.random()*2 + 3 + 's';
+                        g.style.animationDelay = Math.random()*2 + 's';
+                        layer.appendChild(g);
+                    }
+                    break;
                 default:
-                    return null;
+                    break;
             }
-        };
+        }
 
-        // 3. DialogBox
-        const DialogBox = ({ title, children, buttonText, onButtonClick, visible }) => {
-            if (!visible) return null;
-            return (
-                <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#FFF8E7] w-[90%] max-w-[500px] p-8 rounded-[20px] border-[3px] border-[#D4A373] shadow-[10px_10px_0px_rgba(212,163,115,0.5)] relative max-h-[80vh] overflow-y-auto scrollbar-hide animate-[float_6s_ease-in-out_infinite]">
-                        <div className="absolute top-[15px] left-1/2 -translate-x-1/2 w-[15px] h-[15px] bg-[#FF8FA3] rounded-full shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5)]" />
-                        {title && <h3 className="text-[#D4A373] text-2xl font-title mb-4 mt-2">{title}</h3>}
-                        <div className="mt-4 font-hand text-xl leading-relaxed text-[#5d4037] text-left whitespace-pre-wrap">{children}</div>
-                        {buttonText && (
-                            <button onClick={(e) => { e.stopPropagation(); onButtonClick(); }} className="bg-[#FF8FA3] text-white font-title text-lg px-8 py-2 rounded-full mt-6 float-right shadow-[0_4px_0_#d86c7f] active:translate-y-[4px] active:shadow-none transition-all">
-                                {buttonText}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
-        };
+        // 粒子生成辅助函数
+        function createParticles(container, charOrArr, count, className, minDur, maxDur, randomizeChar=false) {
+            for(let i=0; i<count; i++) {
+                const p = document.createElement('div');
+                p.className = className;
+                if(randomizeChar && Array.isArray(charOrArr)) {
+                    p.innerText = charOrArr[Math.floor(Math.random()*charOrArr.length)];
+                } else if (randomizeChar) {
+                     // 如果传入是单字符但开启随机(气球)，这里其实不需要特殊处理，除非有颜色变化
+                     p.innerText = charOrArr; 
+                     if(className === 'fx-laugh') p.innerText = ['😂','🤣','😹','😆'][Math.floor(Math.random()*4)];
+                     if(className === 'fx-balloon') p.style.filter = `hue-rotate(${Math.random()*360}deg)`;
+                } else {
+                    p.innerText = charOrArr;
+                }
+                
+                p.style.left = Math.random() * 90 + 5 + 'vw';
+                const dur = Math.random() * (maxDur - minDur) + minDur;
+                p.style.animationDuration = dur + 's';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(p);
+            }
+        }
 
-        // 4. Heart Game
-        const HeartGame = ({ onComplete }) => {
-            const [revealed, setRevealed] = React.useState(0);
-            const total = 24;
+        // ================= 常规逻辑 =================  
 
-            React.useEffect(() => {
-                if (revealed === total) setTimeout(onComplete, 2000);
-            }, [revealed]);
+        // 0. 首页背景
+        function spawnBgIcon() {
+            const container = document.getElementById('bg-base-layer');
+            const icons = ['🎄', '🎅', '🦌', '🎁', '🔔'];
+            setInterval(() => {
+                if(container.childElementCount > 10) return;
+                const icon = document.createElement('div');
+                icon.className = 'floating-icon'; // 复用之前的css或inline
+                icon.style.cssText = `position:absolute; font-size:3rem; opacity:0.15; filter:blur(2px); user-select:none; animation: floatUp 20s linear infinite;`;
+                icon.innerText = icons[Math.floor(Math.random()*icons.length)];
+                icon.style.left = Math.random()*90 + 'vw';
+                container.appendChild(icon);
+                setTimeout(()=>icon.remove(), 20000);
+            }, 2000);
+            const style = document.createElement('style');
+            style.innerHTML = `@keyframes floatUp { 0% { transform: translateY(110vh) rotate(0deg); } 100% { transform: translateY(-10vh) rotate(20deg); } }`;
+            document.head.appendChild(style);
+        }
 
-            const getStyle = (i) => {
-                const angle = (i / total) * 2 * Math.PI;
-                const r = 130; // Radius in px
-                const x = Math.sin(angle) * r;
-                const y = Math.cos(angle) * r;
-                // Heart shape approximation arrangement or just circle for simplicity on mobile
-                // Let's stick to a nice grid/spiral or circle. Let's do a responsive spiral.
-                // Using fixed absolute positioning logic for the "Heart Shape" is complex without pre-calc.
-                // Let's use a grid that looks orderly.
-                return {};
-            };
+        // 1. 场景切换
+        function showStage(id) {
+            document.querySelectorAll('.overlay-stage').forEach(el => {
+                if(el.classList.contains('active')) el.classList.remove('active');
+                setTimeout(() => { if(!el.classList.contains('active')) el.style.display = 'none'; }, 800);
+            });
+            const target = document.getElementById(id);
+            target.style.display = 'flex'; target.offsetHeight; target.classList.add('active');
+        }
 
-            return (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/90" onClick={() => revealed < total && setRevealed(p => p + 1)}>
-                    <div className="relative w-[320px] h-[320px] grid grid-cols-4 gap-2 content-center">
-                        {HEART_MESSAGES.map((msg, i) => {
-                            const isRevealed = i < revealed;
-                            const colors = ["bg-red-100 text-red-500", "bg-green-100 text-green-600", "bg-yellow-100 text-orange-500", "bg-blue-100 text-blue-500"];
-                            return (
-                                <div key={i} className={`rounded-lg flex items-center justify-center font-hand font-bold shadow-md transition-all duration-500 ${isRevealed ? colors[i % 4] + " scale-100 rotate-0" : "bg-gray-200 text-gray-200 scale-50 rotate-180 opacity-50"}`}>
-                                    {isRevealed ? msg : "?"}
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="mt-8 text-2xl font-hand text-[#FF8FA3] animate-pulse">
-                        {revealed === total ? "🎉 收集完成！" : `点击屏幕收集祝福 (${revealed}/${total})`}
-                    </div>
-                </div>
-            );
-        };
+        // 2. 打字机
+        function typeWriter(element, text, onComplete) {
+            element.innerHTML = ""; element.classList.add('typing-cursor');
+            let i = 0;
+            const t = setInterval(() => {
+                if (i < text.length) {
+                    const char = text.charAt(i);
+                    element.innerHTML += (char === '\n' ? '<br>' : char);
+                    i++;
+                    element.parentElement.scrollTop = element.parentElement.scrollHeight;
+                } else {
+                    clearInterval(t);
+                    element.classList.remove('typing-cursor');
+                    if (onComplete) onComplete();
+                }
+            }, 50);
+        }
 
-        // 5. Main App Logic
-        const App = () => {
-            const [stage, setStage] = React.useState('INTRO'); // INTRO, MEMORIES, GAME, GIFT
-            const [memIndex, setMemIndex] = React.useState(0);
-            const [musicPlaying, setMusicPlaying] = React.useState(false);
-            const audioRef = React.useRef(null);
+        function enableBtn(id) { document.getElementById(id).classList.remove('disabled'); }
 
-            const toggleMusic = () => {
-                if (musicPlaying) { audioRef.current.pause(); } 
-                else { audioRef.current.play().catch(e => console.log("Audio error", e)); }
-                setMusicPlaying(!musicPlaying);
-            };
+        // 3. 音乐
+        function toggleMusic(e) {
+            e.stopPropagation();
+            if (bgm.paused) {
+                bgm.play(); musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
+            } else {
+                bgm.pause(); musicBtn.classList.remove('playing'); musicBtn.innerText = '🚫';
+            }
+        }
 
-            const handleStart = () => {
-                toggleMusic();
-                setStage('MEMORIES');
-            };
+        // 4. 回忆流程
+        function startMemories() {
+            if(bgm.paused) toggleMusic({stopPropagation:()=>{}});
+            showStage('stage-1-memory');
+            renderMemory(0);
+        }
 
-            const nextMemory = () => {
-                if (memIndex < MEMORIES.length - 1) setMemIndex(p => p + 1);
-                else setStage('GAME');
-            };
+        function renderMemory(index) {
+            currentMemIndex = index;
+            const data = MEMORIES[index];
+            const titleEl = document.getElementById('mem-title');
+            const textEl = document.getElementById('mem-text');
+            const btn = document.getElementById('btn-mem');
 
-            return (
-                <div className="w-full h-full relative">
-                    {/* Global Background - Base Layer */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#fff5f5] via-[#e8f5e9] to-[#fffde7] animate-gradient -z-20"></div>
-                    
-                    {/* Dynamic Memory Effects Layer */}
-                    {stage === 'MEMORIES' && <MemoryEffects theme={MEMORIES[memIndex].theme} />}
-                    
-                    {/* Global Snow (Always on except specific immersive moments if needed, kept for atmosphere) */}
-                    {(stage === 'INTRO' || stage === 'GIFT') && <ParticleSystem type="snow" count={20} elements={['❄️']} animation="fall" />}
-                    
-                    {/* Music Control */}
-                    <audio ref={audioRef} src={MUSIC_URL} loop />
-                    <button onClick={toggleMusic} className={`fixed top-5 right-5 z-[100] w-10 h-10 bg-white/80 rounded-full shadow flex items-center justify-center ${musicPlaying ? 'animate-[spin-slow_3s_linear_infinite]' : ''}`}>
-                        {musicPlaying ? '🎵' : '🔇'}
-                    </button>
+            // 应用专属主题
+            applyTheme(data.theme);
 
-                    {/* STAGE: INTRO */}
-                    {stage === 'INTRO' && (
-                        <div className="flex flex-col items-center justify-center h-full text-center p-4 animate-[pulse-glow_3s_infinite]">
-                            <div className="text-6xl mb-4 animate-[float_3s_ease-in-out_infinite]">🦌</div>
-                            <h1 className="font-title text-5xl text-[#FF8FA3] mb-4 drop-shadow-md">Merry Christmas</h1>
-                            <p className="font-hand text-2xl text-[#D4A373] mb-8">属于你的回忆之旅</p>
-                            <button onClick={handleStart} className="bg-[#B5EAD7] text-[#5d4037] font-title text-xl px-10 py-3 rounded-full shadow-lg hover:scale-105 transition-transform">
-                                开始旅程
-                            </button>
-                        </div>
-                    )}
+            textEl.style.opacity = '0.5';
+            setTimeout(()=> textEl.style.opacity = '1', 100);
 
-                    {/* STAGE: MEMORIES */}
-                    {stage === 'MEMORIES' && (
-                        <DialogBox 
-                            visible={true}
-                            title={`${MEMORIES[memIndex].title} ${MEMORIES[memIndex].icon}`}
-                            buttonText={memIndex < MEMORIES.length - 1 ? "下一页 >" : "去收集祝福 >"}
-                            onButtonClick={nextMemory}
-                        >
-                            {MEMORIES[memIndex].content}
-                        </DialogBox>
-                    )}
+            titleEl.innerText = data.t;
+            btn.classList.add('disabled'); 
 
-                    {/* STAGE: GAME */}
-                    {stage === 'GAME' && <HeartGame onComplete={() => setStage('GIFT')} />}
+            typeWriter(textEl, data.c, () => {
+                enableBtn('btn-mem');
+            });
+        }
 
-                    {/* STAGE: GIFT */}
-                    {stage === 'GIFT' && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-                             <div className="bg-white w-[90%] max-w-[400px] p-8 rounded-3xl text-center border-4 border-dashed border-[#FF8FA3] animate-[pop-up_0.6s_ease-out]">
-                                <div className="text-6xl mb-4">🎁</div>
-                                <h2 className="font-title text-2xl text-[#FF8FA3] mb-4">To: 亲爱的你</h2>
-                                <p className="font-hand text-lg text-gray-600 mb-6">
-                                    集齐啦！<br/>愿你的世界永远温暖闪耀。<br/>圣诞快乐！
-                                </p>
-                                <div className="text-4xl flex justify-center gap-4 animate-bounce">
-                                    <span>🍬</span><span>🍎</span><span>🎄</span>
-                                </div>
-                            </div>
-                             {/* Golden Rain for ending */}
-                             <ParticleSystem type="gold" count={40} elements={['✨', '🎉']} animation="fall" />
-                        </div>
-                    )}
-                </div>
-            );
-        };
+        function nextMemory() {
+            if (currentMemIndex < MEMORIES.length - 1) {
+                renderMemory(currentMemIndex + 1);
+            } else {
+                // 清除回忆特效，恢复默认，进入Invite
+                applyTheme('default');
+                showStage('stage-2-invite');
+                setTimeout(() => {
+                    typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
+                        enableBtn('btn-invite');
+                    });
+                }, 500);
+            }
+        }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
+        // 5. 全自动爱心动画
+        function startHeartAnimation() {
+            const inviteStage = document.getElementById('stage-2-invite');
+            inviteStage.classList.remove('active');
+            
+            const layer = document.getElementById('game-layer');
+            layer.style.display = 'block'; 
+
+            const w = window.innerWidth; const h = window.innerHeight;
+            const cx = w / 2; const cy = h / 2;
+            const scale = Math.min(w, h) < 400 ? 11 : 14; 
+            const delay = 200; // 节奏稍快一点
+
+            MESSAGES.forEach((msg, i) => {
+                const t = (i / MESSAGES.length) * 2 * Math.PI;
+                let x = 16 * Math.pow(Math.sin(t), 3);
+                let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                
+                const targetX = (x * scale + cx) - 30;
+                const targetY = (y * scale + cy) - 30;
+
+                const box = document.createElement('div');
+                box.className = 'msg-box';
+                box.innerText = msg;
+                box.style.left = (cx - 30) + 'px'; box.style.top = (cy - 30) + 'px';
+                layer.appendChild(box);
+                box.offsetHeight;
+
+                setTimeout(() => {
+                    box.style.left = targetX + 'px';
+                    box.style.top = targetY + 'px';
+                    box.style.opacity = '1';
+                    box.style.transform = 'scale(1)';
+                }, i * delay); 
+            });
+
+            const totalTime = (MESSAGES.length) * delay + 2000;
+            setTimeout(finishGame, totalTime);
+        }
+
+        function finishGame() {
+            document.getElementById('game-layer').style.display = 'none';
+            showStage('stage-3-card');
+        }
+
+        function revealFinal() {
+            const cardStage = document.getElementById('stage-3-card');
+            cardStage.classList.remove('active');
+            const flash = document.getElementById('flash-overlay');
+            flash.style.opacity = '1';
+            
+            setTimeout(() => {
+                cardStage.style.display = 'none';
+                const mainScene = document.getElementById('main-scene');
+                mainScene.classList.add('active');
+                // 结局也是金色特效
+                applyTheme('gold'); 
+                setTimeout(() => { flash.style.opacity = '0'; }, 100);
+            }, 800);
+        }
+
+        function createSnow() {
+            const c = document.getElementById('snow-container');
+            if (c.childElementCount > 40) return; 
+            const s = document.createElement('div');
+            s.classList.add('snowflake');
+            const size = Math.random() * 8 + 5 + 'px';
+            s.style.width = size; s.style.height = size;
+            s.style.left = Math.random() * 100 + 'vw';
+            s.style.opacity = Math.random() * 0.5 + 0.3;
+            const d = Math.random() * 5 + 5 + 's';
+            s.style.animation = `fall ${d} linear infinite`;
+            c.appendChild(s);
+            setTimeout(() => s.remove(), parseFloat(d) * 1000);
+        }
+    </script>  
+</body>  
 </html>
