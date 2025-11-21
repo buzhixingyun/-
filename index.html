@@ -368,6 +368,65 @@
             100% { transform: translateY(-50px) scale(2.5); opacity: 0; } 
         }
 
+        /* --- NEW CENTER PIECE: HOT AIR BALLOON --- */
+        .balloon-wrapper {
+            position: absolute; top: 40%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 12; cursor: pointer;
+            animation: floatBalloon 6s ease-in-out infinite;
+        }
+        .balloon-wrapper:active { transform: translate(-50%, -50%) scale(0.95); }
+        
+        @keyframes floatBalloon {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-20px); }
+        }
+
+        .hot-air-balloon {
+            position: relative; display: flex; flex-direction: column; align-items: center;
+        }
+        .balloon-body {
+            width: 120px; height: 140px;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--primary));
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative; overflow: hidden;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 5px 10px 20px rgba(0,0,0,0.1);
+        }
+        /* Decor stripes */
+        .balloon-body::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 100%; background: var(--secondary); opacity: 0.6;
+            border-radius: 50%;
+        }
+        .balloon-body::after {
+            content: ''; position: absolute; top: 40%; left: 0; width: 100%; height: 15px;
+            background: var(--accent); opacity: 0.8; transform: rotate(-5deg);
+        }
+        
+        .balloon-ropes {
+            width: 40px; height: 20px; border-left: 2px solid #8d6e63; border-right: 2px solid #8d6e63;
+            margin-top: -5px;
+        }
+        .balloon-basket {
+            width: 40px; height: 30px; background: #8d6e63;
+            border-radius: 0 0 8px 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; position: relative;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .balloon-basket::after {
+            content: '🎁'; position: absolute; top: -8px; font-size: 1.5rem;
+        }
+
+        /* Shaking animation for click */
+        .anim-shake { animation: shakeBalloon 0.5s ease-in-out; }
+        @keyframes shakeBalloon {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+
         /* Interactive Stage Area */
         .scene-stage {
             display: flex; align-items: flex-end; justify-content: center;
@@ -636,6 +695,16 @@
         <!-- Background Elements -->
         <div class="moon-wrapper" onclick="interact('moon', this)">
             <div class="moon">🌕</div>
+        </div>
+
+        <!-- Center Piece: Hot Air Balloon -->
+        <div class="balloon-wrapper" onclick="interact('balloon', this)">
+            <div class="pop-bubble">梦幻热气球</div>
+            <div class="hot-air-balloon">
+                <div class="balloon-body"></div>
+                <div class="balloon-ropes"></div>
+                <div class="balloon-basket"></div>
+            </div>
         </div>
 
         <div class="forest-layer">
@@ -1087,7 +1156,7 @@
             const emoji = el.querySelector('.emoji');
             
             // Remove anim classes to allow restart
-            el.classList.remove('anim-wiggle', 'anim-jump');
+            el.classList.remove('anim-wiggle', 'anim-jump', 'anim-shake');
             if(emoji) emoji.classList.remove('anim-glow');
             
             // Trigger Reflow
@@ -1113,6 +1182,12 @@
                 case 'tree':
                 case 'moon':
                     if(emoji || el.querySelector('.moon')) (emoji || el.querySelector('.moon')).classList.add('anim-glow');
+                    break;
+                case 'balloon':
+                    const body = el.querySelector('.hot-air-balloon');
+                    if(body) body.classList.add('anim-shake');
+                    // Drop a particle
+                    createExplosion(el.getBoundingClientRect().left + 60, el.getBoundingClientRect().top + 140);
                     break;
             }
         }
