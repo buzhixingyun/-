@@ -1002,8 +1002,8 @@
         // [NEW] 照片回忆录链接 (您可以随时替换这些链接)
         const PHOTO_MEMORIES = [
             "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=800&q=80", // 示例：雪景
-            "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=800&q=80", // 示例：装饰
-            "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=800&q=80"  // 示例：礼物
+            "https://images.unsplash.com/photo-1511268011861-691ed93f4558?auto=format&fit=crop&w=800&q=80", // 示例：装饰
+            "https://images.unsplash.com/photo-1576607387131-378d67d5d11e?auto=format&fit=crop&w=800&q=80"  // 示例：礼物
         ];
 
         const INTRO_TEXT = "这是我们认识后我陪你度过的第一个圣诞节\n谨以此纪念我们的友谊\n在这个寒冷的冬天，希望可以为你带来一丝温暖";
@@ -1325,13 +1325,8 @@
                 renderMemory(currentMemIndex + 1);
             } else {
                 applyTheme('default'); // 恢复默认背景
-                showStage('stage-2-invite');
-                setTimeout(() => {
-                    typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
-                        // 自动流程：1.5秒后自动开始游戏
-                        setTimeout(startHeartAnimation, 1500);
-                    });
-                }, 600);
+                // [CHANGED] Go to Photo Slideshow instead of Invite
+                startPhotoSlideshow();
             }
         }
 
@@ -1410,14 +1405,25 @@
             layer.style.opacity = '0';
             setTimeout(() => { layer.style.display = 'none'; }, 800);
             
-            // [CHANGED] Instead of going to card directly, go to photo slideshow
-            startPhotoSlideshow();
+            // [CHANGED] Game finished, go to Gift Card (Photos already shown)
+            showStage('stage-3-card');
         }
 
         // [NEW] Photo Slideshow Logic
         function startPhotoSlideshow() {
+            // Define function to go to next stage (Invite/Game)
+            const nextStage = () => {
+                 showStage('stage-2-invite');
+                 setTimeout(() => {
+                    typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
+                        // 自动流程：1.5秒后自动开始游戏
+                        setTimeout(startHeartAnimation, 1500);
+                    });
+                }, 600);
+            };
+
             if (!PHOTO_MEMORIES || PHOTO_MEMORIES.length === 0) {
-                showStage('stage-3-card');
+                nextStage();
                 return;
             }
             
@@ -1429,8 +1435,8 @@
             // Start animation loop
             const playSlide = () => {
                 if (idx >= PHOTO_MEMORIES.length) {
-                    // Finished, go to next stage
-                    showStage('stage-3-card');
+                    // Finished, go to Game Invite
+                    nextStage();
                     return;
                 }
 
