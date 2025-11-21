@@ -269,25 +269,41 @@
         .msg-box:nth-child(4n+3) { background: rgba(255, 245, 186, 0.95); color: #D4A373; }  
         .msg-box:nth-child(4n+4) { background: rgba(255, 255, 255, 0.95); color: #FF8FA3; border: 2px solid #FF8FA3; }  
 
-        /* --- Photo Slideshow Layer (NEW) --- */
+        /* --- Photo Slideshow Layer (Optimized for Auto-Adapt) --- */
         .photo-frame {
             background: white;
-            padding: 15px 15px 45px 15px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-            transform: rotate(-3deg) scale(0.9);
-            width: 85%; max-width: 400px;
-            aspect-ratio: 4/5;
-            display: flex; align-items: center; justify-content: center;
+            /* Bottom padding larger for Polaroid caption area */
+            padding: 12px 12px 60px 12px; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+            
+            /* Auto dimensions constraints - KEY CHANGE HERE */
+            width: auto;
+            height: auto;
+            max-width: 85vw;
+            max-height: 75vh;
+            
+            /* Flexbox to wrap content tightly around image */
+            display: inline-flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            
             position: relative;
-            opacity: 0; /* Initially hidden */
-            transition: opacity 0.8s ease;
+            opacity: 0; /* Transition handles fade in */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            
+            border-radius: 4px; 
         }
         
         .photo-img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            background-color: #f0f0f0;
-            filter: sepia(0.2); /* Slight nostalgic tint */
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%; 
+            /* Constrain height so it fits on mobile screens comfortably with the frame padding */
+            max-height: 55vh; 
+            object-fit: contain; 
+            background-color: #fafafa; 
         }
 
         .photo-tape {
@@ -299,15 +315,16 @@
             z-index: 10;
         }
 
-        /* Animation for swapping photos */
+        /* Animation for swapping photos with dynamic rotation */
         .photo-frame.show {
-            animation: memoryBreath 5s ease-in-out infinite alternate;
+            animation: photoFloat 6s ease-in-out infinite alternate;
             opacity: 1;
         }
         
-        @keyframes memoryBreath {
-            0% { transform: rotate(-3deg) scale(1); }
-            100% { transform: rotate(-2deg) scale(1.05); }
+        @keyframes photoFloat {
+            /* Use CSS variable --rot set by JS for base rotation */
+            0% { transform: rotate(var(--rot, -3deg)) scale(1); }
+            100% { transform: rotate(calc(var(--rot, -3deg) + 3deg)) scale(1.02); }
         }
 
         /* --- Final Gift Card --- */  
@@ -1452,8 +1469,8 @@
                 
                 setTimeout(() => {
                     img.src = PHOTO_MEMORIES[idx];
-                    // Random tilt for each photo
-                    frame.style.transform = `rotate(${Math.random()*6 - 3}deg) scale(0.9)`;
+                    // Set a random base rotation for this photo via CSS Variable
+                    frame.style.setProperty('--rot', (Math.random() * 6 - 3) + 'deg');
                     
                     // Load image then show
                     img.onload = () => {
