@@ -22,7 +22,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }  
   
         body {  
-            background-color: var(--bg-color);  
+            /* 动态圣诞渐变背景 */
+            background: linear-gradient(-45deg, #fff5f5, #e8f5e9, #fffde7, #fff0f5);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            
             color: var(--text-color);  
             font-family: 'Nunito', 'Ma Shan Zheng', sans-serif;   
             overflow: hidden;   
@@ -34,6 +38,12 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
         }  
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
   
         /* --- Loading Screen --- */
         #loading-screen {
@@ -54,8 +64,58 @@
         /* --- Background & Effects --- */
         #snow-container {  
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
-            pointer-events: none; z-index: 1;  
-        }  
+            pointer-events: none; z-index: 2; /* 雪花在图标之上 */ 
+        } 
+        
+        #bg-icons {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .floating-icon {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.15;
+            filter: blur(2px);
+            animation: floatUp linear infinite;
+            user-select: none;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); }
+            100% { transform: translateY(-10vh) rotate(20deg); }
+        }
+
+        /* --- Hanging Lights (Top Decoration) --- */
+        .light-rope {
+            position: fixed; top: -15px; left: 0; width: 100%; height: 60px;
+            z-index: 100; pointer-events: none;
+            display: flex; justify-content: space-around;
+            overflow: hidden;
+        }
+        .light-bulb {
+            position: relative;
+            width: 16px; height: 36px;
+            border-radius: 50%;
+            background: #fff;
+            margin-top: 10px;
+            animation: swing 3s ease-in-out infinite alternate, glow 1.5s infinite alternate;
+        }
+        .light-bulb::before {
+            content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 8px; background: #444;
+        }
+        /* Wire approximation */
+        .light-wire {
+            position: absolute; top: -5px; left: 0; width: 100%; height: 25px;
+            border-bottom: 2px solid #444; border-radius: 50%;
+            z-index: 99;
+        }
+        /* Bulb Colors */
+        .light-bulb:nth-child(2n) { background: #FF8FA3; box-shadow: 0 5px 15px rgba(255, 143, 163, 0.6); animation-delay: 0.2s; }
+        .light-bulb:nth-child(2n+1) { background: #B5EAD7; box-shadow: 0 5px 15px rgba(181, 234, 215, 0.6); animation-delay: 0.5s; }
+        .light-bulb:nth-child(3n) { background: #FFE577; box-shadow: 0 5px 15px rgba(255, 229, 119, 0.6); animation-delay: 0.8s; }
+
+        @keyframes swing { 0% { transform: rotate(-3deg); } 100% { transform: rotate(3deg); } }
+        @keyframes glow { 0% { opacity: 0.7; } 100% { opacity: 1; transform: scale(1.1); } }
 
         /* --- Music Button --- */
         #music-control {
@@ -221,6 +281,22 @@
         <div class="loading-text">Loading Memories...</div>
     </div>
 
+    <!-- 顶部彩灯装饰 -->
+    <div class="light-rope">
+        <div class="light-wire"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+        <div class="light-bulb"></div>
+    </div>
+
+    <!-- 背景漂浮装饰 -->
+    <div id="bg-icons"></div>
+
     <!-- 闪光转场层 -->
     <div id="flash-overlay"></div>
 
@@ -339,6 +415,9 @@
             // 等待字体加载
             await document.fonts.ready;
             
+            // 启动背景特效
+            createBackgroundIcons();
+
             // 隐藏Loading
             const loader = document.getElementById('loading-screen');
             loader.style.opacity = '0';
@@ -359,6 +438,40 @@
         };
 
         // ================= 功能函数 =================  
+
+        // 0. 背景氛围
+        function createBackgroundIcons() {
+            const container = document.getElementById('bg-icons');
+            const icons = ['🎄', '🎅', '🦌', '🎁', '🔔', '🍪', '❄️'];
+            
+            // 初始生成几个
+            for(let i=0; i<8; i++) spawnBgIcon(container, icons);
+            
+            // 持续生成
+            setInterval(() => spawnBgIcon(container, icons), 2000);
+        }
+
+        function spawnBgIcon(container, icons) {
+            if(container.childElementCount > 12) return; // 限制数量
+
+            const icon = document.createElement('div');
+            icon.className = 'floating-icon';
+            icon.innerText = icons[Math.floor(Math.random() * icons.length)];
+            
+            // 随机属性
+            const left = Math.random() * 90 + 5; // 5% - 95%
+            const duration = Math.random() * 10 + 15; // 15s - 25s (很慢)
+            const size = Math.random() * 2 + 2; // 2rem - 4rem
+            
+            icon.style.left = `${left}vw`;
+            icon.style.animationDuration = `${duration}s`;
+            icon.style.fontSize = `${size}rem`;
+            
+            container.appendChild(icon);
+            
+            // 动画结束移除
+            setTimeout(() => icon.remove(), duration * 1000);
+        }
 
         // 1. 场景切换管理
         function showStage(id) {
