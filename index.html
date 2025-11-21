@@ -288,139 +288,165 @@
         .polaroid:nth-child(2) { transform: rotate(5deg) translateY(8px); }  
         .polaroid-img { width: 100%; height: 65px; background-color: #FFD1DC; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }  
 
-        /* --- Final Scene (Completely Redesigned) --- */  
-        #main-scene {  
+        /* --- Final Scene Container --- */  
+        #final-scene-container {  
             position: relative; z-index: 10; 
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
             height: 100%; width: 100%;
             overflow: hidden;
-            transition: opacity 1s ease, filter 1s ease; 
-            filter: blur(10px); opacity: 0; pointer-events: none;
+            opacity: 0; pointer-events: none;
+            transition: opacity 1s ease;
         }  
-        #main-scene.active { filter: blur(0); opacity: 1; pointer-events: auto; }  
-        
-        /* Scene Header */
-        .scene-header {
-            position: absolute; top: 10%; width: 100%;
-            animation: floatTitle 4s ease-in-out infinite;
-            z-index: 100; text-align: center;
-        }
-        @keyframes floatTitle { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        #final-scene-container.active { opacity: 1; pointer-events: auto; }
 
-        .final-title {
-            font-family: 'Fredoka One', 'Ma Shan Zheng', sans-serif; font-size: 3.2rem; 
-            color: #FF8FA3; 
-            text-shadow: 3px 3px 0px #fff, 0 0 20px rgba(255, 143, 163, 0.4);
-            margin-bottom: 10px;
-            line-height: 1.2;
+        /* --- Outdoor View (For Transition) --- */
+        #outdoor-view {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            transform-origin: center center;
+            transition: transform 2s cubic-bezier(0.45, 0, 0.55, 1), opacity 2s ease;
+            z-index: 1;
         }
-        .final-subtitle {
-            color: #D4A373; font-weight: bold; font-size: 1.3rem;
-            font-family: 'Ma Shan Zheng';
-            background: rgba(255,255,255,0.6);
-            padding: 6px 24px; border-radius: 20px;
-            display: inline-block;
-            backdrop-filter: blur(2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        /* --- GIANT TREE & 3D ORBIT SYSTEM --- */
-        
-        /* The Central Stage */
-        .center-stage {
-            position: absolute; bottom: 60px; left: 50%;
-            transform: translateX(-50%);
-            width: 300px; height: 500px;
-            display: flex; justify-content: center; align-items: flex-end;
-        }
-
-        /* The Giant Tree */
         .giant-tree {
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
             font-size: 22rem; line-height: 1;
             filter: drop-shadow(0 10px 20px rgba(0,50,0,0.3));
-            position: relative; z-index: 10; /* Middle Layer */
-            transform-origin: bottom center;
-            animation: treeBreath 4s ease-in-out infinite alternate;
         }
-        @keyframes treeBreath { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
-
-        /* The Star on top (Axis of Rotation) */
         .tree-star {
-            position: absolute; top: 40px; left: 50%; 
-            transform: translateX(-50%);
-            font-size: 4rem; z-index: 11;
-            filter: drop-shadow(0 0 15px gold);
+            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+            font-size: 4rem; filter: drop-shadow(0 0 15px gold);
             animation: starTwinkle 1.5s infinite alternate;
         }
         @keyframes starTwinkle { 0% { opacity: 0.8; transform: translateX(-50%) scale(1); } 100% { opacity: 1; transform: translateX(-50%) scale(1.2); } }
 
-        /* --- 3D ORBIT BALLOON --- */
-        .orbit-container {
-            position: absolute; 
-            top: 80px; /* Align with star roughly */
-            left: 50%;
-            width: 0; height: 0;
-            z-index: 20;
+        /* Sleigh Animation */
+        .sleigh-container {
+            position: absolute; top: 15%; left: -300px;
+            font-size: 2.5rem; opacity: 0.8; pointer-events: none; z-index: 0;
+        }
+        .sleigh-container.fly { animation: sleighRide 10s linear forwards; }
+        @keyframes sleighRide {
+            0% { transform: translateX(0) translateY(0) rotate(5deg); left: -300px; }
+            100% { transform: translateX(100vw) translateY(-20px) rotate(5deg); left: 100vw; }
         }
 
-        .balloon-wrapper {
-            position: absolute; top: -90px; left: -60px;
-            width: 120px; height: 180px;
-            cursor: pointer;
-            will-change: transform, z-index;
-            animation: orbit3D 20s linear infinite;
+        /* --- Indoor View (Final State) --- */
+        #indoor-view {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 40%, #ffe6cc, #dbb18e);
+            z-index: 2; opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            overflow: hidden;
         }
-        /* Pause on hover */
-        .balloon-wrapper:hover { animation-play-state: paused; }
 
-        /* 
-           Perspective Logic:
-           0%   : Front (z: 20), Scaled Up, Lower Y
-           25%  : Right (z: 10), Normal Scale, Higher Y
-           50%  : Back (z: 5), Scaled Down, Highest Y (Behind Tree Tip)
-           75%  : Left (z: 10), Normal Scale, Higher Y
-           100% : Front
-        */
-        @keyframes orbit3D {
-            0% { 
-                z-index: 20; 
-                transform: translateX(0px) translateY(20px) scale(1.2); 
-            }
-            25% { 
-                z-index: 9; 
-                transform: translateX(160px) translateY(-10px) scale(0.9); 
-            }
-            50% { 
-                z-index: 5; /* Behind Tree (Tree is 10) */
-                transform: translateX(0px) translateY(-30px) scale(0.7); 
-            }
-            75% { 
-                z-index: 9; 
-                transform: translateX(-160px) translateY(-10px) scale(0.9); 
-            }
-            100% { 
-                z-index: 20; 
-                transform: translateX(0px) translateY(20px) scale(1.2); 
-            }
+        .room-bg-pattern {
+            position: absolute; inset: 0; 
+            background-image: radial-gradient(#d7a984 15%, transparent 16%), radial-gradient(#d7a984 15%, transparent 16%);
+            background-size: 60px 60px; background-position: 0 0, 30px 30px; opacity: 0.1;
+        }
+
+        /* Window */
+        .window {
+            position: absolute; top: 10vh; left: 10vw; width: 25vw; height: 25vw; max-width: 150px; max-height: 200px;
+            background: #1a1a2e; border: 8px solid #5d4037;
+            border-radius: 4px; overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 4px #8d6e63;
+        }
+        .window::after { /* Horizontal bar */
+            content: ''; position: absolute; top: 60%; left: 0; width: 100%; height: 6px; background: #5d4037;
+        }
+        .window::before { /* Vertical bar */
+            content: ''; position: absolute; top: 0; left: 50%; height: 100%; width: 6px; background: #5d4037; transform: translateX(-50%); z-index: 1;
+        }
+        .window-snow {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='white' fill-opacity='0.5'/%3E%3C/svg%3E");
+            animation: bgScroll 10s linear infinite; opacity: 0.7;
+        }
+        @keyframes bgScroll { from { background-position: 0 0; } to { background-position: 0 100px; } }
+
+        /* Fireplace */
+        .fireplace {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 260px; height: 200px;
+            background: #795548;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: flex-end;
+            z-index: 10;
+        }
+        .mantel {
+            position: absolute; top: -15px; left: -10px; width: 280px; height: 15px;
+            background: #5d4037; border-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .fire-pit {
+            width: 160px; height: 140px; background: #3e2723;
+            border-radius: 20px 20px 0 0;
+            position: relative; overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            margin-bottom: 0;
+        }
+        .logs {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            font-size: 3rem; z-index: 2;
+        }
+        .fire-flame {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 60px; background: #ff5722;
+            border-radius: 50% 50% 20% 20%;
+            filter: blur(5px);
+            animation: burn 0.6s infinite alternate;
+            opacity: 0.8; z-index: 1;
+        }
+        .fire-flame::after {
+            content: ''; position: absolute; top: 10px; left: 15px; width: 30px; height: 30px;
+            background: #ffeb3b; border-radius: 50%; filter: blur(2px);
+        }
+        @keyframes burn { 
+            0% { transform: translateX(-50%) scale(1); border-radius: 50% 50% 20% 20%; } 
+            100% { transform: translateX(-50%) scale(1.1) translateY(-5px); border-radius: 50% 0 20% 20%; } 
         }
         
-        @media (max-width: 450px) {
-            @keyframes orbit3D {
-                0% { z-index: 20; transform: translateX(0px) translateY(20px) scale(1.1); }
-                25% { z-index: 9; transform: translateX(110px) translateY(-10px) scale(0.85); }
-                50% { z-index: 5; transform: translateX(0px) translateY(-30px) scale(0.65); }
-                75% { z-index: 9; transform: translateX(-110px) translateY(-10px) scale(0.85); }
-                100% { z-index: 20; transform: translateX(0px) translateY(20px) scale(1.1); }
-            }
-            .giant-tree { font-size: 18rem; }
-            .center-stage { bottom: 80px; }
+        .stocking {
+            position: absolute; top: 0; font-size: 2.5rem; 
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+            animation: sway 3s ease-in-out infinite alternate;
+        }
+        .stocking:nth-child(1) { left: 40px; animation-delay: 0s; color: #d32f2f; }
+        .stocking:nth-child(2) { right: 40px; animation-delay: 1s; color: #388e3c; }
+        @keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+
+        /* Indoor Tree */
+        .indoor-tree {
+            position: absolute; bottom: 20px; right: 5vw;
+            font-size: 12rem; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+            z-index: 9; transform-origin: bottom center;
+            animation: treeIdle 5s ease-in-out infinite alternate;
+        }
+        @keyframes treeIdle { from { transform: scale(1) rotate(0deg); } to { transform: scale(1.02) rotate(1deg); } }
+
+        /* Rug */
+        .rug {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 320px; height: 60px; background: #5d4037;
+            border-radius: 50%; opacity: 0.3; z-index: 5;
         }
 
-        /* Balloon Graphics (Same as before) */
+        /* Floating Balloon (Indoor Style) */
+        .balloon-wrapper {
+            position: absolute; top: 15%; right: 20%;
+            width: 100px; height: 150px;
+            cursor: pointer; z-index: 20;
+            animation: indoorFloat 4s ease-in-out infinite alternate;
+        }
+        @keyframes indoorFloat { 
+            0% { transform: translateY(0) rotate(2deg); } 
+            100% { transform: translateY(-15px) rotate(-2deg); } 
+        }
+
+        /* Balloon Graphics */
         .hot-air-balloon {
             position: relative; display: flex; flex-direction: column; align-items: center;
-            transition: transform 0.3s;
+            transition: transform 0.3s; transform: scale(0.8); /* Indoor size */
         }
         .hot-air-balloon.anim-shake { animation: shakeBalloon 0.5s ease-in-out; }
 
@@ -472,7 +498,7 @@
         .falling-star {
             position: fixed; 
             color: #FFD700; font-size: 1.2rem;
-            pointer-events: none; z-index: 30; /* Must fall in front */
+            pointer-events: none; z-index: 30; 
             animation: starDrop 1.5s linear forwards;
             text-shadow: 0 0 5px #fff;
         }
@@ -481,30 +507,21 @@
             100% { transform: translateY(150px) rotate(180deg) scale(0.5); opacity: 0; }
         }
 
-        /* --- DOLLS AT THE BASE --- */
+        /* Dolls Wrapper (Indoor) */
         .dolls-wrapper {
-            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
             display: flex; align-items: flex-end; justify-content: center;
-            z-index: 20; /* Front of tree */
-            width: 100%; max-width: 500px;
+            z-index: 20; width: 100%; max-width: 350px;
         }
         
         .doll-item {
-            position: relative;
-            font-size: 3.5rem;
-            margin: 0 -5px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
-            user-select: none;
+            position: relative; font-size: 3rem; margin: 0 -2px;
+            cursor: pointer; transition: transform 0.2s;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); user-select: none;
         }
-        /* Arc effect via margins and translateY */
-        .doll-item:nth-child(1) { transform: translateY(-10px) rotate(-10deg); margin-right: 10px; }
-        .doll-item:nth-child(2) { transform: translateY(-5px) rotate(-5deg); margin-right: 5px; }
-        .doll-item:nth-child(3) { transform: translateY(0) scale(1.1); z-index: 21; }
-        .doll-item:nth-child(4) { transform: translateY(-5px) rotate(5deg); margin-left: 5px; }
-        .doll-item:nth-child(5) { transform: translateY(-10px) rotate(10deg); margin-left: 10px; }
-
+        .doll-item:nth-child(odd) { transform: translateY(0); }
+        .doll-item:nth-child(even) { transform: translateY(-5px); }
+        
         .doll-item:active { transform: scale(0.9) !important; }
         .doll-item:hover { filter: drop-shadow(0 8px 10px rgba(0,0,0,0.3)) brightness(1.1); }
         
@@ -531,31 +548,22 @@
             content: ''; position: absolute; bottom: -6px; left: 50%; margin-left: -6px;
             border-width: 6px 6px 0; border-style: solid; border-color: #fff transparent transparent transparent;
         }
-
-        /* Flying Sleigh (Still in bg) */
-        .sleigh-container {
-            position: absolute; top: 12%; left: -300px;
-            font-size: 2rem; opacity: 0.8; pointer-events: none; z-index: 1;
-        }
-        .sleigh-container.fly { animation: sleighRide 12s linear forwards; }
-        @keyframes sleighRide {
-            0% { transform: translateX(0) translateY(0) rotate(5deg); left: -300px; }
-            25% { transform: translateX(25vw) translateY(20px) rotate(0deg); }
-            50% { transform: translateX(50vw) translateY(0) rotate(-5deg); }
-            75% { transform: translateX(75vw) translateY(20px) rotate(0deg); }
-            100% { transform: translateX(100vw) translateY(0) rotate(5deg); left: 100vw; }
-        }
-
-        .snow-ground { position: fixed; bottom: -40px; left: 0; width: 100%; height: 120px; background: white; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: scaleX(1.5); z-index: 2; transition: transform 1s ease; }  
-        
-        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg); opacity: 0; } }  
-        .snowflake { position: absolute; background: white; border-radius: 50%; opacity: 0.8; pointer-events: none; } 
         
         /* 闪光转场优化 */
         #flash-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; z-index: 9999; pointer-events: none; 
             opacity: 0; transition: opacity 1.5s ease-in-out; 
+        }
+
+        /* Scene Header (Indoor) */
+        .indoor-header {
+            position: absolute; top: 5%; width: 100%; text-align: center; z-index: 50;
+        }
+        .final-title {
+            font-family: 'Fredoka One', 'Ma Shan Zheng'; font-size: 2.5rem; 
+            color: #5d4037; text-shadow: 2px 2px 0 #fff;
+            margin-bottom: 5px;
         }
 
         /* =========================================
@@ -734,37 +742,57 @@
         </div>
     </div>
   
-    <!-- 最终场景 (Redesigned) -->  
-    <div id="main-scene">  
-        <div class="scene-header">
-            <h1 class="final-title">Merry Christmas! 小胡同学</h1>  
-            <div class="final-subtitle">属于你的可爱冬天 ✨</div>
-        </div>
+    <!-- Final Scene Container -->  
+    <div id="final-scene-container">  
         
-        <!-- Flying Sleigh (Background) -->
-        <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
-
-        <!-- The Center Stage -->
-        <div class="center-stage">
-            <!-- The Star Axis -->
-            <div class="tree-star">⭐</div>
-            
-            <!-- Giant Tree -->
+        <!-- Layer 1: Outdoor Transition View (Giant Tree) -->
+        <div id="outdoor-view">
             <div class="giant-tree">🎄</div>
+            <div class="tree-star">⭐</div>
+            <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
+        </div>
 
-            <!-- Orbiting Balloon System -->
-            <div class="orbit-container">
-                <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
-                    <div class="pop-bubble">梦幻热气球</div>
-                    <div class="hot-air-balloon">
-                        <div class="balloon-body"></div>
-                        <div class="balloon-ropes"></div>
-                        <div class="balloon-basket"></div>
-                    </div>
+        <!-- Layer 2: Cozy Indoor Scene (Final State) -->
+        <div id="indoor-view">
+            <div class="room-bg-pattern"></div>
+            
+            <div class="indoor-header">
+                <h1 class="final-title">Merry Christmas!</h1>
+                <p style="font-family:'Ma Shan Zheng'; color: #8d6e63;">温馨的圣诞夜</p>
+            </div>
+
+            <!-- Window -->
+            <div class="window">
+                <div class="window-snow"></div>
+            </div>
+
+            <!-- Fireplace -->
+            <div class="fireplace">
+                <div class="mantel">
+                    <div class="stocking">🧦</div>
+                    <div class="stocking">🧦</div>
+                </div>
+                <div class="fire-pit">
+                    <div class="fire-flame"></div>
+                    <div class="logs">🪵</div>
+                </div>
+            </div>
+            <div class="rug"></div>
+
+            <!-- Indoor Tree -->
+            <div class="indoor-tree">🎄</div>
+
+            <!-- Floating Balloon -->
+            <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
+                <div class="pop-bubble">梦幻热气球</div>
+                <div class="hot-air-balloon">
+                    <div class="balloon-body"></div>
+                    <div class="balloon-ropes"></div>
+                    <div class="balloon-basket"></div>
                 </div>
             </div>
 
-            <!-- Dolls at the base -->
+            <!-- Dolls on rug -->
             <div class="dolls-wrapper">
                 <div class="doll-item" onclick="interactDoll(this, '姜饼人')">
                     <div class="pop-bubble">要吃饼干吗?</div>🍪
@@ -785,7 +813,6 @@
         </div>
 
     </div>  
-    <div class="snow-ground"></div>  
   
     <script>  
         // ================= 数据配置 =================  
@@ -1197,7 +1224,7 @@
             showStage('stage-3-card');
         }
 
-        // === NEW: Handle Balloon Interaction ===
+        // === Handle Balloon Interaction ===
         function handleBalloonClick(e, wrapper) {
             e.stopPropagation();
             // Check if the click originated from the basket (The secret gift box)
@@ -1219,14 +1246,14 @@
             setTimeout(() => { modal.style.display = 'none'; }, 600);
         }
 
-        // === NEW: Start Balloon Stars ===
+        // === Start Balloon Stars ===
         function startBalloonStars() {
             const balloon = document.querySelector('.balloon-wrapper');
             if(!balloon) return;
             
             // Create a star every 600ms
             setInterval(() => {
-                const scene = document.getElementById('main-scene');
+                const scene = document.getElementById('final-scene-container');
                 if (!scene || !scene.classList.contains('active')) return;
 
                 const rect = balloon.getBoundingClientRect();
@@ -1308,28 +1335,41 @@
             cardStage.classList.add('exit');
             cardStage.classList.remove('active');
             
-            // 开启白屏闪光
+            // 1. 开启白屏闪光 (Flash)
             const flash = document.getElementById('flash-overlay');
             flash.style.opacity = '1';
             
-            // 隐藏顶部的灯（为了结局干净）
+            // 隐藏顶部的灯
             document.querySelector('.light-rope').classList.add('hidden');
 
             setTimeout(() => {
                 cardStage.style.display = 'none';
-                const mainScene = document.getElementById('main-scene');
-                mainScene.classList.add('active');
                 
-                applyTheme('gold'); 
+                // 2. 激活最终容器
+                const container = document.getElementById('final-scene-container');
+                container.classList.add('active');
                 
-                // 慢慢淡出白屏，显露结局
-                setTimeout(() => { 
-                    flash.style.opacity = '0'; 
-                    // Start flying animations
-                    startSleighLoop();
+                // 3. Fade out Flash -> 显示 Outdoor View
+                flash.style.opacity = '0'; 
+                startSleighLoop();
+                
+                // 4. 执行 "Outdoor -> Indoor" 镜头推入动画
+                // 延迟 500ms 让用户看清树，然后推入
+                setTimeout(() => {
+                    const outdoor = document.getElementById('outdoor-view');
+                    const indoor = document.getElementById('indoor-view');
+                    
+                    // Zoom In Effect
+                    outdoor.style.transform = 'scale(5)';
+                    outdoor.style.opacity = '0';
+                    
+                    // Fade In Indoor
+                    indoor.style.opacity = '1';
+                    
                     startBalloonStars();
-                }, 500);
-            }, 1200); 
+                }, 1500);
+
+            }, 1000); 
         }
 
         function createSnow() {
