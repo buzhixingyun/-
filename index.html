@@ -183,6 +183,7 @@
             box-shadow: 8px 8px 0px rgba(212, 163, 115, 0.4);  
             position: relative; 
             max-height: 85vh; overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
             z-index: 501;
             
             /* 初始状态：稍微缩小并下移 */
@@ -287,25 +288,23 @@
         .polaroid:nth-child(2) { transform: rotate(5deg) translateY(8px); }  
         .polaroid-img { width: 100%; height: 65px; background-color: #FFD1DC; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }  
 
-        /* --- Final Scene (Optimized) --- */  
+        /* --- Final Scene (Completely Redesigned) --- */  
         #main-scene {  
             position: relative; z-index: 10; 
             display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-end; /* Align elements to bottom */
+            align-items: center; justify-content: center;
             height: 100%; width: 100%;
-            padding-bottom: 100px; /* Space for the snow ground */
-            text-align: center;
+            overflow: hidden;
             transition: opacity 1s ease, filter 1s ease; 
             filter: blur(10px); opacity: 0; pointer-events: none;
-            overflow: hidden;
         }  
         #main-scene.active { filter: blur(0); opacity: 1; pointer-events: auto; }  
         
         /* Scene Header */
         .scene-header {
-            position: absolute; top: 15%; width: 100%;
+            position: absolute; top: 10%; width: 100%;
             animation: floatTitle 4s ease-in-out infinite;
-            z-index: 20;
+            z-index: 100; text-align: center;
         }
         @keyframes floatTitle { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
@@ -326,81 +325,103 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* Moon Animation */
-        .moon-wrapper {
-            position: absolute; top: 10%; right: 10%;
-            z-index: 5; cursor: pointer;
-            animation: moonFloat 6s ease-in-out infinite alternate;
-            transition: transform 0.3s;
-        }
-        .moon-wrapper:active { transform: scale(0.9); }
-        .moon { font-size: 5.5rem; filter: drop-shadow(0 0 25px rgba(255, 240, 200, 0.5)); }
-        @keyframes moonFloat { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
-
-        /* Forest Background */
-        .forest-layer {
-            position: absolute; bottom: 110px; left: 0; width: 100%;
-            display: flex; justify-content: space-around;
-            pointer-events: none; z-index: 5; opacity: 0.9;
-            font-size: 4rem; filter: blur(0.5px);
-        }
-        .tree-bg { transform: scale(0.8); opacity: 0.7; }
-
-        /* Cabin Animation */
-        .cabin-wrapper {
-            position: absolute; bottom: 110px; left: 8%;
-            z-index: 15; cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .cabin-wrapper:hover { transform: scale(1.05); }
-        .cabin-wrapper:active { transform: scale(0.95); }
-        .cabin { font-size: 5rem; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        /* --- GIANT TREE & 3D ORBIT SYSTEM --- */
         
-        .smoke-container { position: absolute; top: -20px; right: 10px; }
-        .smoke {
-            width: 12px; height: 12px; background: rgba(255,255,255,0.7);
-            border-radius: 50%; position: absolute;
-            animation: smokeRise 3s infinite; opacity: 0;
-        }
-        .smoke:nth-child(2) { animation-delay: 1.5s; }
-        @keyframes smokeRise { 
-            0% { transform: translateY(0) scale(1); opacity: 0.8; } 
-            100% { transform: translateY(-50px) scale(2.5); opacity: 0; } 
+        /* The Central Stage */
+        .center-stage {
+            position: absolute; bottom: 60px; left: 50%;
+            transform: translateX(-50%);
+            width: 300px; height: 500px;
+            display: flex; justify-content: center; align-items: flex-end;
         }
 
-        /* --- NEW CENTER PIECE: HOT AIR BALLOON (Orbiting) --- */
+        /* The Giant Tree */
+        .giant-tree {
+            font-size: 22rem; line-height: 1;
+            filter: drop-shadow(0 10px 20px rgba(0,50,0,0.3));
+            position: relative; z-index: 10; /* Middle Layer */
+            transform-origin: bottom center;
+            animation: treeBreath 4s ease-in-out infinite alternate;
+        }
+        @keyframes treeBreath { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
+
+        /* The Star on top (Axis of Rotation) */
+        .tree-star {
+            position: absolute; top: 40px; left: 50%; 
+            transform: translateX(-50%);
+            font-size: 4rem; z-index: 11;
+            filter: drop-shadow(0 0 15px gold);
+            animation: starTwinkle 1.5s infinite alternate;
+        }
+        @keyframes starTwinkle { 0% { opacity: 0.8; transform: translateX(-50%) scale(1); } 100% { opacity: 1; transform: translateX(-50%) scale(1.2); } }
+
+        /* --- 3D ORBIT BALLOON --- */
+        .orbit-container {
+            position: absolute; 
+            top: 80px; /* Align with star roughly */
+            left: 50%;
+            width: 0; height: 0;
+            z-index: 20;
+        }
+
         .balloon-wrapper {
-            position: absolute; top: 40%; left: 50%;
-            z-index: 12; cursor: pointer;
+            position: absolute; top: -90px; left: -60px;
             width: 120px; height: 180px;
-            /* Adjust pivot to center */
-            margin-left: -60px; margin-top: -90px; 
-            /* Orbit Animation: rotate wrapper, counter-rotate content */
-            animation: orbitMe 25s linear infinite;
-            user-select: none;
+            cursor: pointer;
+            will-change: transform, z-index;
+            animation: orbit3D 20s linear infinite;
         }
-        /* Pause on hover/click for easier reading */
+        /* Pause on hover */
         .balloon-wrapper:hover { animation-play-state: paused; }
-        /* .balloon-wrapper:active { transform: scale(0.95); }  Removed to handle internal clicks better */
-        
-        @keyframes orbitMe {
-            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
-            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
-        }
-        
-        /* Media Query for smaller screens to reduce orbit radius */
-        @media (max-width: 450px) {
-            @keyframes orbitMe {
-                from { transform: rotate(0deg) translateX(70px) rotate(0deg); }
-                to { transform: rotate(360deg) translateX(70px) rotate(-360deg); }
+
+        /* 
+           Perspective Logic:
+           0%   : Front (z: 20), Scaled Up, Lower Y
+           25%  : Right (z: 10), Normal Scale, Higher Y
+           50%  : Back (z: 5), Scaled Down, Highest Y (Behind Tree Tip)
+           75%  : Left (z: 10), Normal Scale, Higher Y
+           100% : Front
+        */
+        @keyframes orbit3D {
+            0% { 
+                z-index: 20; 
+                transform: translateX(0px) translateY(20px) scale(1.2); 
+            }
+            25% { 
+                z-index: 9; 
+                transform: translateX(160px) translateY(-10px) scale(0.9); 
+            }
+            50% { 
+                z-index: 5; /* Behind Tree (Tree is 10) */
+                transform: translateX(0px) translateY(-30px) scale(0.7); 
+            }
+            75% { 
+                z-index: 9; 
+                transform: translateX(-160px) translateY(-10px) scale(0.9); 
+            }
+            100% { 
+                z-index: 20; 
+                transform: translateX(0px) translateY(20px) scale(1.2); 
             }
         }
+        
+        @media (max-width: 450px) {
+            @keyframes orbit3D {
+                0% { z-index: 20; transform: translateX(0px) translateY(20px) scale(1.1); }
+                25% { z-index: 9; transform: translateX(110px) translateY(-10px) scale(0.85); }
+                50% { z-index: 5; transform: translateX(0px) translateY(-30px) scale(0.65); }
+                75% { z-index: 9; transform: translateX(-110px) translateY(-10px) scale(0.85); }
+                100% { z-index: 20; transform: translateX(0px) translateY(20px) scale(1.1); }
+            }
+            .giant-tree { font-size: 18rem; }
+            .center-stage { bottom: 80px; }
+        }
 
+        /* Balloon Graphics (Same as before) */
         .hot-air-balloon {
             position: relative; display: flex; flex-direction: column; align-items: center;
             transition: transform 0.3s;
         }
-        /* Shake only applies to the inner part, not disrupting the orbit */
         .hot-air-balloon.anim-shake { animation: shakeBalloon 0.5s ease-in-out; }
 
         .balloon-body {
@@ -409,8 +430,8 @@
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             position: relative; overflow: hidden;
             box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 5px 10px 20px rgba(0,0,0,0.1);
+            z-index: 2;
         }
-        /* Decor stripes */
         .balloon-body::before {
             content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
             width: 16px; height: 100%; background: var(--secondary); opacity: 0.6;
@@ -420,22 +441,25 @@
             content: ''; position: absolute; top: 40%; left: 0; width: 100%; height: 12px;
             background: var(--accent); opacity: 0.8; transform: rotate(-5deg);
         }
-        
         .balloon-ropes {
-            width: 30px; height: 15px; border-left: 2px solid #8d6e63; border-right: 2px solid #8d6e63;
-            margin-top: -4px;
+            width: 30px; height: 15px; 
+            border-left: 2px solid #8d6e63; border-right: 2px solid #8d6e63;
+            margin-top: -4px; position: relative; z-index: 1;
         }
         .balloon-basket {
-            width: 32px; height: 24px; background: #8d6e63;
-            border-radius: 0 0 6px 6px;
+            width: 36px; height: 28px; background: #8d6e63;
+            border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; position: relative;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            font-size: 1.2rem; position: relative; z-index: 2;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: transform 0.2s;
+            background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+            background-size: 8px 8px;
         }
-        .balloon-basket:hover { transform: scale(1.2); cursor: pointer; }
+        .balloon-basket:active { transform: scale(0.9); }
         .balloon-basket::after {
-            content: '🎁'; position: absolute; top: -6px; font-size: 1.2rem;
+            content: '🎁'; position: absolute; top: -8px; font-size: 1.1rem;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
 
         @keyframes shakeBalloon {
@@ -444,81 +468,57 @@
             75% { transform: rotate(10deg); }
         }
 
-        /* Falling Star from Balloon */
+        /* Falling Stars */
         .falling-star {
             position: fixed; 
-            color: #FFD700;
-            font-size: 1.2rem;
-            pointer-events: none;
-            z-index: 11; /* Behind balloon (12) but front of trees (5) */
+            color: #FFD700; font-size: 1.2rem;
+            pointer-events: none; z-index: 30; /* Must fall in front */
             animation: starDrop 1.5s linear forwards;
             text-shadow: 0 0 5px #fff;
         }
         @keyframes starDrop {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(150px) rotate(180deg); opacity: 0; }
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(150px) rotate(180deg) scale(0.5); opacity: 0; }
         }
 
-
-        /* Interactive Stage Area */
-        .scene-stage {
+        /* --- DOLLS AT THE BASE --- */
+        .dolls-wrapper {
+            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
             display: flex; align-items: flex-end; justify-content: center;
-            gap: 8px; width: 100%; max-width: 800px;
-            padding: 0 10px; z-index: 20;
-            flex-wrap: nowrap;
+            z-index: 20; /* Front of tree */
+            width: 100%; max-width: 500px;
         }
-
-        /* Interactive Items */
-        .interact-item {
-            position: relative; display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            -webkit-tap-highlight-color: transparent;
+        
+        .doll-item {
+            position: relative;
+            font-size: 3.5rem;
+            margin: 0 -5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
             user-select: none;
         }
-        .interact-item:active { transform: scale(0.95); }
-        .interact-item:hover { transform: translateY(-5px); }
+        /* Arc effect via margins and translateY */
+        .doll-item:nth-child(1) { transform: translateY(-10px) rotate(-10deg); margin-right: 10px; }
+        .doll-item:nth-child(2) { transform: translateY(-5px) rotate(-5deg); margin-right: 5px; }
+        .doll-item:nth-child(3) { transform: translateY(0) scale(1.1); z-index: 21; }
+        .doll-item:nth-child(4) { transform: translateY(-5px) rotate(5deg); margin-left: 5px; }
+        .doll-item:nth-child(5) { transform: translateY(-10px) rotate(10deg); margin-left: 10px; }
 
-        .interact-item .emoji { 
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.15));
-            transition: filter 0.3s;
-            line-height: 1;
-        }
-        .interact-item:hover .emoji { filter: drop-shadow(0 8px 15px rgba(0,0,0,0.2)) brightness(1.1); }
+        .doll-item:active { transform: scale(0.9) !important; }
+        .doll-item:hover { filter: drop-shadow(0 8px 10px rgba(0,0,0,0.3)) brightness(1.1); }
+        
+        .doll-jump { animation: dollJump 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes dollJump { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
-        .shadow {
-            width: 70%; height: 12px; background: rgba(0,0,0,0.1);
-            border-radius: 50%; margin-top: -5px;
-            transition: all 0.3s;
-        }
-        .interact-item:hover .shadow { width: 90%; background: rgba(0,0,0,0.15); }
-
-        /* Item Specifics */
-        .item-tree .emoji { font-size: 8rem; }
-        .item-santa .emoji { font-size: 5.5rem; }
-        .item-deer .emoji { font-size: 4.5rem; }
-        .item-snowman .emoji { font-size: 4.5rem; }
-        .item-gift .emoji { font-size: 3rem; }
-        .item-gift { margin: 0 -5px; z-index: 25; } /* Overlap gifts slightly */
-
-        /* Animations & Effects */
-        .anim-wiggle { animation: wiggle 0.6s ease-in-out; }
-        @keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-15deg); } 75% { transform: rotate(15deg); } }
-
-        .anim-jump { animation: jump 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes jump { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-40px); } }
-
-        .anim-glow { animation: treeGlow 1s ease-in-out infinite alternate; }
-        @keyframes treeGlow { from { filter: drop-shadow(0 0 5px gold); } to { filter: drop-shadow(0 0 25px gold) brightness(1.3); } }
-
-        /* Pop-up Bubble */
+        /* Pop-up Bubble (Shared) */
         .pop-bubble {
-            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
-            background: #fff; padding: 8px 16px; border-radius: 16px;
-            font-size: 1rem; color: #FF8FA3; font-weight: bold;
+            position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+            background: #fff; padding: 6px 12px; border-radius: 12px;
+            font-size: 0.9rem; color: #FF8FA3; font-weight: bold;
             white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             opacity: 0; pointer-events: none; font-family: 'Fredoka One', 'Ma Shan Zheng';
-            z-index: 100;
-            max-width: 200px; white-space: normal; text-align: center; line-height: 1.2;
+            z-index: 100; transition: none;
         }
         .pop-bubble.show { animation: popShow 3s forwards; }
         @keyframes popShow { 
@@ -532,10 +532,10 @@
             border-width: 6px 6px 0; border-style: solid; border-color: #fff transparent transparent transparent;
         }
 
-        /* Flying Sleigh */
+        /* Flying Sleigh (Still in bg) */
         .sleigh-container {
             position: absolute; top: 12%; left: -300px;
-            font-size: 2.5rem; opacity: 0.9; pointer-events: none; z-index: 5;
+            font-size: 2rem; opacity: 0.8; pointer-events: none; z-index: 1;
         }
         .sleigh-container.fly { animation: sleighRide 12s linear forwards; }
         @keyframes sleighRide {
@@ -723,96 +723,67 @@
     <div id="secret-modal" class="overlay-stage" style="z-index: 2000;">
         <div class="dialog-box" style="text-align: center;">
             <div class="dialog-pin"></div>
-            <h3 style="color: #FF8FA3; font-family: 'Fredoka One'; font-size: 1.5rem;">🎉 惊喜发现！</h3>
+            <h3 style="color: #FF8FA3; font-family: 'Fredoka One'; font-size: 1.5rem;">🎉 恭喜发现隐藏彩蛋！</h3>
             <div class="dialog-content" style="font-size: 1.4rem; color: #5d4037; min-height: auto;">
-                恭喜你发现了我！<br>
+                竟然被你找到了！<br>
                 我们的暗语是：<br>
-                <span style="font-size: 1.8rem; color: #FF8FA3; font-weight: bold; display: block; margin: 15px 0; font-family: 'Fredoka One';">11050830</span>
+                <span style="font-size: 2rem; color: #FF8FA3; font-weight: bold; display: block; margin: 15px 0; font-family: 'Fredoka One';">11050830</span>
                 快来找我兑换礼物吧 🤩
             </div>
             <button class="action-btn" style="float:none;" onclick="closeSecret()">收到 🎁</button>
         </div>
     </div>
   
-    <!-- 最终场景 (Updated: Interactive & Richer) -->  
+    <!-- 最终场景 (Redesigned) -->  
     <div id="main-scene">  
         <div class="scene-header">
             <h1 class="final-title">Merry Christmas! 小胡同学</h1>  
             <div class="final-subtitle">属于你的可爱冬天 ✨</div>
         </div>
         
-        <!-- Background Elements -->
-        <div class="moon-wrapper" onclick="interact('moon', this)">
-            <div class="moon">🌕</div>
-        </div>
-
-        <!-- Center Piece: Hot Air Balloon (Orbiting) -->
-        <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
-            <div class="pop-bubble">梦幻热气球</div>
-            <div class="hot-air-balloon">
-                <div class="balloon-body"></div>
-                <div class="balloon-ropes"></div>
-                <div class="balloon-basket"></div>
-            </div>
-        </div>
-
-        <div class="forest-layer">
-            <div class="tree-bg">🌲</div>
-            <div class="tree-bg">🌲</div>
-            <div class="tree-bg">🌲</div>
-            <div class="tree-bg">🌲</div>
-        </div>
-
-        <div class="cabin-wrapper" onclick="interact('cabin', this)">
-            <div class="pop-bubble">欢迎回家~</div>
-            <div class="cabin">🏡</div>
-            <div class="smoke-container">
-                <div class="smoke"></div>
-                <div class="smoke"></div>
-            </div>
-        </div>
-
-        <!-- Flying Elements -->
+        <!-- Flying Sleigh (Background) -->
         <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
 
-        <!-- Interactive Characters -->
-        <div class="scene-stage">
-            <div class="interact-item item-snowman" onclick="interact('snowman', this)">
-                <div class="pop-bubble">好凉快呀~</div>
-                <div class="emoji">⛄</div>
-                <div class="shadow"></div>
+        <!-- The Center Stage -->
+        <div class="center-stage">
+            <!-- The Star Axis -->
+            <div class="tree-star">⭐</div>
+            
+            <!-- Giant Tree -->
+            <div class="giant-tree">🎄</div>
+
+            <!-- Orbiting Balloon System -->
+            <div class="orbit-container">
+                <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
+                    <div class="pop-bubble">梦幻热气球</div>
+                    <div class="hot-air-balloon">
+                        <div class="balloon-body"></div>
+                        <div class="balloon-ropes"></div>
+                        <div class="balloon-basket"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="interact-item item-gift" onclick="interact('gift', this)">
-                <div class="pop-bubble">好运+1</div>
-                <div class="emoji">🎁</div>
-                <div class="shadow" style="width:50%"></div>
-            </div>
-
-            <div class="interact-item item-tree" onclick="interact('tree', this)">
-                <div class="pop-bubble">Bling Bling!</div>
-                <div class="emoji">🎄</div>
-                <div class="shadow"></div>
-            </div>
-
-            <div class="interact-item item-gift" onclick="interact('gift', this)">
-                <div class="pop-bubble">暴富+1</div>
-                <div class="emoji">🎁</div>
-                <div class="shadow" style="width:50%"></div>
-            </div>
-
-            <div class="interact-item item-santa" onclick="interact('santa', this)">
-                <div class="pop-bubble">Ho Ho Ho~</div>
-                <div class="emoji">🎅</div>
-                <div class="shadow"></div>
-            </div>
-
-            <div class="interact-item item-deer" onclick="interact('deer', this)">
-                <div class="pop-bubble">圣诞快乐!</div>
-                <div class="emoji">🦌</div>
-                <div class="shadow"></div>
+            <!-- Dolls at the base -->
+            <div class="dolls-wrapper">
+                <div class="doll-item" onclick="interactDoll(this, '姜饼人')">
+                    <div class="pop-bubble">要吃饼干吗?</div>🍪
+                </div>
+                <div class="doll-item" onclick="interactDoll(this, '小熊')">
+                    <div class="pop-bubble">抱抱~</div>🧸
+                </div>
+                <div class="doll-item" onclick="interactDoll(this, '圣诞老人')">
+                    <div class="pop-bubble">Ho Ho Ho!</div>🎅
+                </div>
+                <div class="doll-item" onclick="interactDoll(this, '雪人')">
+                    <div class="pop-bubble">好凉快呀</div>⛄
+                </div>
+                <div class="doll-item" onclick="interactDoll(this, '驯鹿')">
+                    <div class="pop-bubble">圣诞快乐!</div>🦌
+                </div>
             </div>
         </div>
+
     </div>  
     <div class="snow-ground"></div>  
   
@@ -843,6 +814,7 @@
             { t: "(9/9) 🎄", c: "最后，\n亲爱的小胡同学，\n愿你永远被爱包围，万事胜意！\n圣诞快乐，不止圣诞，每天都快乐！", theme: 'gold' }
         ];
 
+        // 99条不重复的祝福语
         const BALLOON_MESSAGES = [
             "圣诞快乐，天天开心！", "友谊长存，岁岁年年！", "你是最可爱的！", "愿你温暖过冬！", "好运正在派送中...",
             "暴富暴富暴富！", "想吃火锅了吗？", "记得多喝热水哦~", "永远做自己！", "前程似锦，未来可期！",
@@ -866,6 +838,7 @@
             "没有文案，只有祝福。", "最后一条：永远快乐！", "特别的爱给特别的你。", "愿你三冬暖。", "愿你春不寒。",
             "愿你天黑有灯。", "愿你下雨有伞。", "愿你路上有良人相伴。", "圣诞节快乐呀！"
         ];
+        // 随机池副本
         let availableBalloonMsgs = [...BALLOON_MESSAGES];
   
         // ================= 系统变量 =================  
@@ -1224,10 +1197,10 @@
             showStage('stage-3-card');
         }
 
-        // New function to separate balloon interactions
+        // === NEW: Handle Balloon Interaction ===
         function handleBalloonClick(e, wrapper) {
             e.stopPropagation();
-            // Check if the click originated from the basket
+            // Check if the click originated from the basket (The secret gift box)
             if (e.target.closest('.balloon-basket')) {
                 const modal = document.getElementById('secret-modal');
                 modal.style.display = 'flex';
@@ -1246,7 +1219,7 @@
             setTimeout(() => { modal.style.display = 'none'; }, 600);
         }
 
-        // Starts dropping stars from the balloon
+        // === NEW: Start Balloon Stars ===
         function startBalloonStars() {
             const balloon = document.querySelector('.balloon-wrapper');
             if(!balloon) return;
@@ -1274,53 +1247,44 @@
 
         // Interaction handler for final scene
         function interact(type, el) {
+            const body = el.querySelector('.hot-air-balloon');
             const bubble = el.querySelector('.pop-bubble');
-            const emoji = el.querySelector('.emoji');
             
-            // Remove anim classes to allow restart
-            el.classList.remove('anim-wiggle', 'anim-jump', 'anim-shake');
-            if(emoji) emoji.classList.remove('anim-glow');
+            if(body) {
+                body.classList.remove('anim-shake');
+                void body.offsetWidth;
+                body.classList.add('anim-shake');
+            }
             
-            // Trigger Reflow
-            void el.offsetWidth;
-
-            // Show bubble
-            if (bubble) {
+            // Pick a unique random message
+            if (availableBalloonMsgs.length === 0) {
+                availableBalloonMsgs = [...BALLOON_MESSAGES];
+            }
+            const randomIndex = Math.floor(Math.random() * availableBalloonMsgs.length);
+            const msg = availableBalloonMsgs.splice(randomIndex, 1)[0];
+            
+            if(bubble) {
+                bubble.innerText = msg;
                 bubble.classList.remove('show');
                 void bubble.offsetWidth;
                 bubble.classList.add('show');
             }
 
-            switch(type) {
-                case 'snowman':
-                case 'santa':
-                    el.classList.add('anim-wiggle');
-                    break;
-                case 'deer':
-                case 'gift':
-                case 'cabin':
-                    el.classList.add('anim-jump');
-                    break;
-                case 'tree':
-                case 'moon':
-                    if(emoji || el.querySelector('.moon')) (emoji || el.querySelector('.moon')).classList.add('anim-glow');
-                    break;
-                case 'balloon':
-                    const body = el.querySelector('.hot-air-balloon');
-                    if(body) body.classList.add('anim-shake');
-                    
-                    // Pick a unique random message
-                    if (availableBalloonMsgs.length === 0) {
-                        availableBalloonMsgs = [...BALLOON_MESSAGES];
-                    }
-                    const randomIndex = Math.floor(Math.random() * availableBalloonMsgs.length);
-                    const msg = availableBalloonMsgs.splice(randomIndex, 1)[0];
-                    
-                    if(bubble) bubble.innerText = msg;
-
-                    // Drop a particle
-                    createExplosion(el.getBoundingClientRect().left + 60, el.getBoundingClientRect().top + 140);
-                    break;
+            // Drop a particle
+            createExplosion(el.getBoundingClientRect().left + 60, el.getBoundingClientRect().top + 140);
+        }
+        
+        // Generic doll interaction
+        function interactDoll(el, name) {
+            el.classList.remove('doll-jump');
+            void el.offsetWidth;
+            el.classList.add('doll-jump');
+            
+            const bubble = el.querySelector('.pop-bubble');
+            if(bubble) {
+                bubble.classList.remove('show');
+                void bubble.offsetWidth;
+                bubble.classList.add('show');
             }
         }
 
