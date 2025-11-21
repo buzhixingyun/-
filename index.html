@@ -78,17 +78,24 @@
         .overlay-stage {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+            /* 增加 backdrop-filter 过渡，使背景模糊效果更丝滑 */
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s, backdrop-filter 0.8s;
             opacity: 0; visibility: hidden;
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
         }
 
         /* 初始状态 */
         #stage-0-intro { z-index: 500; }
         #stage-1-memory { z-index: 450; }
         #stage-2-invite { z-index: 400; }
-        #stage-3-card { z-index: 350; background: rgba(255, 251, 240, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        #stage-3-card { z-index: 350; }
 
-        .overlay-stage.active { opacity: 1; visibility: visible; }
+        .overlay-stage.active { 
+            opacity: 1; visibility: visible; 
+            backdrop-filter: blur(5px); /* 激活时背景微糊 */
+            -webkit-backdrop-filter: blur(5px);
+        }
         .overlay-stage.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
 
         /* --- Dialog UI --- */
@@ -101,10 +108,11 @@
             position: relative; 
             max-height: 85vh; overflow-y: auto; 
             -webkit-overflow-scrolling: touch;
-            transform: scale(0.95); opacity: 0;
-            transition: transform 0.4s ease, opacity 0.4s ease;
+            /* 优化弹窗动画：带有弹性的进入效果，退出时略微缩小 */
+            transform: scale(0.9) translateY(20px); opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
         }
-        .overlay-stage.active .dialog-box { transform: scale(1); opacity: 1; }
+        .overlay-stage.active .dialog-box { transform: scale(1) translateY(0); opacity: 1; }
   
         .dialog-pin {  
             position: absolute; top: 16px; left: 50%; transform: translateX(-50%);  
@@ -167,7 +175,7 @@
             background: var(--card-bg); width: 90%; max-width: 450px; padding: 40px 30px;  
             border-radius: 30px; border: 4px dashed var(--primary);  
             box-shadow: 0 20px 50px rgba(212, 163, 115, 0.2); text-align: center;  
-            transform: translateY(40px); opacity: 0; transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);   
+            transform: translateY(40px); opacity: 0; transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);   
         }  
         .overlay-stage.active .welcome-card { transform: translateY(0); opacity: 1; }  
   
@@ -188,6 +196,13 @@
           
         @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg); opacity: 0; } }  
         .snowflake { position: absolute; background: white; border-radius: 50%; opacity: 0.8; pointer-events: none; }  
+
+        /* --- Flash Effect --- */
+        #flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 9999; pointer-events: none;
+            opacity: 0; transition: opacity 1s ease;
+        }
     </style>  
 <script type="importmap">
 {
@@ -205,6 +220,9 @@
         <div class="loader"></div>
         <div class="loading-text">Loading Memories...</div>
     </div>
+
+    <!-- 闪光转场层 -->
+    <div id="flash-overlay"></div>
 
     <!-- 背景音乐 (预加载) -->
     <audio id="bgm" loop preload="auto">
@@ -346,15 +364,18 @@
         function showStage(id) {
             // 隐藏所有活动场景
             document.querySelectorAll('.overlay-stage').forEach(el => {
-                el.classList.remove('active');
+                if(el.classList.contains('active')) {
+                    el.classList.remove('active');
+                    // 让旧场景自然淡出
+                }
                 setTimeout(() => {
                     if(!el.classList.contains('active')) el.style.display = 'none';
-                }, 600);
+                }, 800); // 与CSS transition时间匹配
             });
             
             // 显示目标场景
             const target = document.getElementById(id);
-            target.style.display = 'flex'; // 先display flex
+            target.style.display = 'flex'; 
             // 强制重绘
             target.offsetHeight; 
             target.classList.add('active');
@@ -438,6 +459,10 @@
             const textEl = document.getElementById('mem-text');
             const btn = document.getElementById('btn-mem');
 
+            // 简单的淡入效果重置
+            textEl.style.opacity = '0.5';
+            setTimeout(()=> textEl.style.opacity = '1', 100);
+
             titleEl.innerText = `Memories ${data.t}`;
             btn.classList.add('disabled'); // 禁用按钮直到打字完成
 
@@ -460,11 +485,15 @@
             }
         }
 
-        // 阶段 2: 播放心形动画 (新逻辑: 6.6s 慢速版)
+        // 阶段 2: 播放心形动画 (6.6s 慢速版)
         function startHeartAnimation() {
-            document.getElementById('stage-2-invite').classList.remove('active'); // 隐藏 Dialog
+            // 显式移除 Invite 阶段，触发 CSS fade-out 动画
+            const inviteStage = document.getElementById('stage-2-invite');
+            inviteStage.classList.remove('active');
             
             const layer = document.getElementById('game-layer');
+            layer.style.display = 'block'; // 确保层可见
+
             const w = window.innerWidth;
             const h = window.innerHeight;
             const cx = w / 2;
@@ -475,8 +504,7 @@
             const scale = minDim < 400 ? 11 : (minDim < 600 ? 14 : 18); 
             
             // 计算延迟：确保总时长约为 6.6 秒
-            // 24个方块，最后一个方块启动时间 + 过渡时间(0.8s) = 6.6s
-            // 23 * delay + 800 = 6600 => delay ≈ 250ms
+            // 24个方块，延迟累加
             const delay = 250; 
 
             MESSAGES.forEach((msg, i) => {
@@ -502,7 +530,7 @@
                 // 强制回流
                 box.offsetHeight;
 
-                // 均匀的延迟触发，形成丝滑的飞出效果，持续 6.6s
+                // 均匀的延迟触发，形成丝滑的飞出效果
                 setTimeout(() => {
                     box.style.left = targetX + 'px';
                     box.style.top = targetY + 'px';
@@ -523,14 +551,27 @@
             showStage('stage-3-card');
         }
 
-        // 阶段 3: 最终页面
+        // 阶段 3: 最终页面 (拆开礼物)
         function revealFinal() {
             const cardStage = document.getElementById('stage-3-card');
-            cardStage.classList.add('fade-out'); // 向上淡出
+            cardStage.classList.remove('active'); // 触发 CSS 退出动画 (scale down)
+            
+            // 触发白屏闪光
+            const flash = document.getElementById('flash-overlay');
+            flash.style.opacity = '1';
+
+            // 在闪光最亮时切换场景
             setTimeout(() => {
                 cardStage.style.display = 'none';
-                document.getElementById('main-scene').classList.add('active');
-            }, 600);
+                
+                const mainScene = document.getElementById('main-scene');
+                mainScene.classList.add('active');
+                
+                // 闪光淡出，显露最终场景
+                setTimeout(() => {
+                    flash.style.opacity = '0';
+                }, 100);
+            }, 800); // 等待卡片退出动画大半部分
         }
 
         // ================= 视觉特效 =================  
