@@ -30,23 +30,54 @@
             cursor: default;   
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 1s ease; /* 背景色平滑过渡 */
+            transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1); /* 背景色丝滑过渡 */
         }  
 
-        /* --- Loading Screen --- */
+        /* --- Loading Screen (Optimized) --- */
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.8s ease-out;
         }
-        .loader {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary); border-radius: 50%;
-            animation: spin 1s linear infinite;
+        
+        /* 跳动的礼物图标 */
+        .loading-icon {
+            font-size: 4.5rem;
+            animation: bounceGift 1s infinite alternate ease-in-out;
+            filter: drop-shadow(0 15px 15px rgba(255, 143, 163, 0.3));
+            margin-bottom: 20px;
         }
+        @keyframes bounceGift {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-15px) scale(1.1); }
+        }
+
+        /* 进度条容器 */
+        .loading-bar-container {
+            width: 200px; height: 10px; background: #FFF0F5;
+            border-radius: 20px; overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* 进度条本体 */
+        .loading-bar {
+            width: 0%; height: 100%; 
+            background: var(--primary);
+            border-radius: 20px;
+            transition: width 1.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+            /* 条纹动画 */
+            background-image: linear-gradient(45deg,rgba(255,255,255,.2) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.2) 75%,transparent 75%,transparent);
+            background-size: 20px 20px;
+            animation: progressStripes 1s linear infinite;
+        }
+        @keyframes progressStripes { from { background-position: 20px 0; } to { background-position: 0 0; } }
+
         .loading-text {
-            margin-top: 15px; font-family: 'Fredoka One'; color: var(--primary);
+            margin-top: 15px; font-family: 'Ma Shan Zheng'; 
+            color: var(--text-color); font-size: 1.1rem; 
+            opacity: 0.9; letter-spacing: 1px;
         }
 
         /* --- Background Layers --- */
@@ -58,7 +89,7 @@
             background: linear-gradient(-45deg, #fff5f5, #e8f5e9, #fffde7, #fff0f5);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
-            transition: opacity 1s ease;
+            transition: opacity 1.5s ease;
         }
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
@@ -70,6 +101,7 @@
         #theme-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1; pointer-events: none; overflow: hidden;
+            transition: opacity 1s ease;
         }
 
         /* 3. 全局雪花层 (默认最上层，但不会挡住弹窗) */
@@ -84,7 +116,10 @@
             z-index: 100; pointer-events: none;
             display: flex; justify-content: space-around;
             overflow: hidden;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        .light-rope.hidden { transform: translateY(-100px); }
+
         .light-bulb {
             position: relative; width: 16px; height: 36px; border-radius: 50%;
             background: #fff; margin-top: 10px;
@@ -121,23 +156,25 @@
         #music-control.playing { animation: spin 4s linear infinite; color: var(--primary); }
         @keyframes spin { 100% { transform: rotate(360deg); } }
   
-        /* --- Stage Layout --- */  
+        /* --- Stage Layout (Container) --- */  
         .overlay-stage {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s, backdrop-filter 0.8s;
-            opacity: 0; visibility: hidden;
-            backdrop-filter: blur(0px);
-            -webkit-backdrop-filter: blur(0px);
             z-index: 500;
-        }
-        .overlay-stage.active { 
-            opacity: 1; visibility: visible; 
-            backdrop-filter: blur(3px); /* 稍微模糊背景，突出文字 */
-            -webkit-backdrop-filter: blur(3px);
+            /* 默认隐藏状态 */
+            opacity: 0; visibility: hidden; pointer-events: none;
+            backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
+            /* 转场动画配置 */
+            transition: opacity 0.6s ease, backdrop-filter 0.6s ease, visibility 0.6s;
         }
 
-        /* --- Dialog Box --- */
+        /* 激活状态 */
+        .overlay-stage.active { 
+            opacity: 1; visibility: visible; pointer-events: auto;
+            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+        }
+
+        /* --- Dialog Box (Animated Content) --- */
         .dialog-box {  
             background-color: var(--paper-color);  
             width: 88%; max-width: 480px; padding: 35px 30px; 
@@ -146,12 +183,27 @@
             box-shadow: 8px 8px 0px rgba(212, 163, 115, 0.4);  
             position: relative; 
             max-height: 85vh; overflow-y: auto; 
-            transform: scale(0.9) translateY(20px); opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
-            /* 保证对话框在特效之上 */
             z-index: 501;
+            
+            /* 初始状态：稍微缩小并下移 */
+            transform: scale(0.8) translateY(30px); 
+            opacity: 0;
+            /* 物理弹簧入场动画 */
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
         }
-        .overlay-stage.active .dialog-box { transform: scale(1) translateY(0); opacity: 1; }
+
+        /* 弹窗激活：回弹到正常大小 */
+        .overlay-stage.active .dialog-box { 
+            transform: scale(1) translateY(0); 
+            opacity: 1; 
+        }
+        
+        /* 弹窗离场：稍微放大并淡出 (Zoom Out Fade) */
+        .overlay-stage.exit .dialog-box {
+            transform: scale(1.1) translateY(-10px);
+            opacity: 0;
+            transition: transform 0.5s ease-in, opacity 0.4s ease;
+        }
   
         .dialog-pin {  
             position: absolute; top: 16px; left: 50%; transform: translateX(-50%);  
@@ -177,35 +229,58 @@
         .action-btn:active { transform: translateY(4px); box-shadow: none; }  
         .action-btn.disabled { opacity: 0.6; pointer-events: none; filter: grayscale(1); }
 
-        /* --- Heart Animation Layer --- */  
+        /* --- Heart Animation Layer (Optimized) --- */  
         #game-layer {  
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 600; pointer-events: none;   
         }  
         .msg-box {  
             position: absolute; width: 60px; height: 60px; 
-            background: white; border-radius: 16px; 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            border-radius: 16px; 
             display: flex; align-items: center; justify-content: center;  
             text-align: center; padding: 2px; 
             font-size: 15px; font-weight: bold; color: #8d6e63; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);  
+            /* 玻璃拟态阴影 */
+            box-shadow: 
+                0 4px 6px rgba(0,0,0,0.05), 
+                inset 0 0 0 1px rgba(255,255,255,0.6),
+                inset 0 2px 5px rgba(255,255,255,0.8);
             font-family: 'Ma Shan Zheng', cursive; 
             transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
             opacity: 0; transform: scale(0);
         }  
-        .msg-box:nth-child(4n+1) { background: #FFD1DC; color: #fff; }  
-        .msg-box:nth-child(4n+2) { background: #E2F0CB; color: #779966; }  
-        .msg-box:nth-child(4n+3) { background: #FFF5BA; color: #D4A373; }  
-        .msg-box:nth-child(4n+4) { background: #FFFFFF; color: #FF8FA3; border: 2px solid #FF8FA3; }  
+        /* 悬浮呼吸动画 */
+        .msg-box.floating { animation: boxFloat 3s ease-in-out infinite alternate; }
+        @keyframes boxFloat { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-6px) scale(1.05); } }
+        
+        /* 粒子爆炸 (纯CSS实现) */
+        .particle {
+            position: absolute; width: 6px; height: 6px; border-radius: 50%;
+            pointer-events: none; opacity: 0;
+        }
+        @keyframes explode { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+
+        /* 颜色配置 */
+        .msg-box:nth-child(4n+1) { background: rgba(255, 209, 220, 0.95); color: #fff; }  
+        .msg-box:nth-child(4n+2) { background: rgba(226, 240, 203, 0.95); color: #779966; }  
+        .msg-box:nth-child(4n+3) { background: rgba(255, 245, 186, 0.95); color: #D4A373; }  
+        .msg-box:nth-child(4n+4) { background: rgba(255, 255, 255, 0.95); color: #FF8FA3; border: 2px solid #FF8FA3; }  
 
         /* --- Final Gift Card --- */  
         .welcome-card {  
             background: var(--card-bg); width: 90%; max-width: 450px; padding: 40px 30px;  
             border-radius: 30px; border: 4px dashed var(--primary);  
             box-shadow: 0 20px 50px rgba(212, 163, 115, 0.2); text-align: center;  
-            transform: translateY(40px); opacity: 0; transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);   
+            /* 默认下沉隐藏 */
+            transform: translateY(60px) scale(0.9); opacity: 0; 
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);   
         }  
-        .overlay-stage.active .welcome-card { transform: translateY(0); opacity: 1; }  
+        .overlay-stage.active .welcome-card { transform: translateY(0) scale(1); opacity: 1; }  
+        /* 离场 */
+        .overlay-stage.exit .welcome-card { transform: scale(0.8) opacity(0); transition: all 0.5s ease; }
+
         .ribbon { position: absolute; top: -10px; right: -10px; width: 80px; height: 80px; background: var(--secondary); border-radius: 50%; opacity: 0.5; z-index: -1; }  
         .memory-lane { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; margin-top: 20px;}  
         .polaroid { background: white; padding: 6px 6px 20px 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transform: rotate(-5deg); width: 90px; border: 1px solid #f0f0f0; }  
@@ -216,18 +291,30 @@
         #main-scene {  
             position: relative; z-index: 10; display: flex; flex-direction: column;  
             align-items: center; justify-content: center; height: 100%; text-align: center;  
-            transition: filter 1s ease, opacity 1s; filter: blur(10px); opacity: 0; pointer-events: none;
+            transition: opacity 1s ease, filter 1s ease; 
+            filter: blur(10px); opacity: 0; pointer-events: none;
         }  
         #main-scene.active { filter: blur(0); opacity: 1; pointer-events: auto; }  
-        .snow-ground { position: fixed; bottom: -40px; left: 0; width: 100%; height: 120px; background: white; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: scaleX(1.5); z-index: 2; }  
+        
+        /* 标题入场动画 */
+        #main-scene h1 { transform: translateY(-20px); opacity: 0; transition: all 1s ease 0.5s; }
+        #main-scene.active h1 { transform: translateY(0); opacity: 1; }
+        
+        .snow-ground { position: fixed; bottom: -40px; left: 0; width: 100%; height: 120px; background: white; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: scaleX(1.5); z-index: 2; transition: transform 1s ease; }  
+        
         @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg); opacity: 0; } }  
         .snowflake { position: absolute; background: white; border-radius: 50%; opacity: 0.8; pointer-events: none; } 
-        #flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 1s ease; }
+        
+        /* 闪光转场优化 */
+        #flash-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; z-index: 9999; pointer-events: none; 
+            opacity: 0; transition: opacity 1.5s ease-in-out; 
+        }
 
         /* =========================================
            THEME ANIMATIONS (Unique for each memory)
            ========================================= */
-
         /* Theme 1: Sakura (初识) */
         .fx-sakura { position: absolute; font-size: 1.5rem; animation: sakuraFall linear infinite; opacity: 0.8; }
         @keyframes sakuraFall { 0% { transform: translateY(-10vh) rotate(0deg) translateX(0); } 100% { transform: translateY(110vh) rotate(360deg) translateX(20px); } }
@@ -241,7 +328,6 @@
         }
 
         /* Theme 3: Gaming (游戏) */
-        /* 游戏主题需要深色背景配合 */
         .fx-game-icon { position: absolute; font-size: 3rem; animation: gamePop infinite alternate; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
         .fx-game-vs { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15rem; font-weight: 900; color: rgba(255,255,255,0.05); font-family: 'Fredoka One'; animation: pulseVs 2s infinite; }
         @keyframes gamePop { 0% { transform: scale(1) rotate(-5deg); } 100% { transform: scale(1.1) rotate(5deg); } }
@@ -291,10 +377,13 @@
 </head>  
 <body>  
     
-    <!-- 资源加载页 -->
+    <!-- 资源加载页 (Optimized) -->
     <div id="loading-screen">
-        <div class="loader"></div>
-        <div class="loading-text">Loading Memories...</div>
+        <div class="loading-icon">🎁</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <div class="loading-text">正在打包美好的回忆...</div>
     </div>
 
     <!-- 顶部彩灯装饰 -->
@@ -427,18 +516,30 @@
         // ================= 初始化 =================  
         window.onload = async () => {
             await document.fonts.ready;
-            const loader = document.getElementById('loading-screen');
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 800);
-
-            showStage('stage-0-intro');
-            spawnBgIcon(); // 简单的首页漂浮物
             
+            // 触发进度条动画
+            const bar = document.getElementById('loading-bar');
+            const screen = document.getElementById('loading-screen');
+            
+            // 模拟加载过程
+            setTimeout(() => bar.style.width = '60%', 200);
+            setTimeout(() => bar.style.width = '100%', 1000);
+
+            // 进度条满后再消失
             setTimeout(() => {
-                typeWriter(document.getElementById('intro-text'), INTRO_TEXT, () => {
-                    enableBtn('btn-intro');
-                });
-            }, 800);
+                screen.style.opacity = '0';
+                setTimeout(() => screen.style.display = 'none', 800);
+                
+                // 显示首页
+                showStage('stage-0-intro');
+                spawnBgIcon();
+                
+                setTimeout(() => {
+                    typeWriter(document.getElementById('intro-text'), INTRO_TEXT, () => {
+                        enableBtn('btn-intro');
+                    });
+                }, 800);
+            }, 1800);
 
             setInterval(createSnow, 200);
         };
@@ -449,25 +550,32 @@
             const body = document.body;
             layer.innerHTML = ''; // 清除旧特效
             
-            // 默认背景
-            body.style.backgroundColor = '#FFFBF0';
+            // 默认背景恢复
+            if(theme === 'default') {
+                body.style.backgroundColor = '#FFFBF0';
+                document.getElementById('bg-base-layer').style.opacity = '1';
+                return;
+            }
+
+            // 默认过渡状态
             document.getElementById('bg-base-layer').style.opacity = '1';
+            body.style.backgroundColor = '#FFFBF0';
 
             switch(theme) {
                 case 'sakura': // 1. 樱花
+                    body.style.backgroundColor = '#fff0f5'; 
                     createParticles(layer, '🌸', 20, 'fx-sakura', 5, 10);
                     break;
                 case 'planes': // 2. 纸飞机
+                    body.style.backgroundColor = '#e6f7ff'; 
                     createParticles(layer, '✈️', 6, 'fx-plane', 8, 15);
                     break;
-                case 'gaming': // 3. 游戏 (深色电竞风)
-                    document.getElementById('bg-base-layer').style.opacity = '0.1'; // 压暗背景
-                    body.style.backgroundColor = '#1a103c'; // 深蓝紫
-                    // VS 水印
+                case 'gaming': // 3. 游戏
+                    document.getElementById('bg-base-layer').style.opacity = '0.1'; 
+                    body.style.backgroundColor = '#1a103c'; 
                     const vs = document.createElement('div');
                     vs.className = 'fx-game-vs'; vs.innerText = 'VS';
                     layer.appendChild(vs);
-                    // 游戏元素
                     const icons = ['🎮', '⚡', '🔥', '👾', '⚔️', '🏆'];
                     for(let i=0; i<15; i++) {
                         const p = document.createElement('div');
@@ -487,19 +595,19 @@
                     layer.appendChild(glow);
                     break;
                 case 'laugh': // 5. 欢笑
+                    body.style.backgroundColor = '#fffde7'; 
                     createParticles(layer, ['😂','🤣','😹','😆'][Math.floor(Math.random()*4)], 15, 'fx-laugh', 4, 8, true);
                     break;
                 case 'winter': // 6. 过冬
+                    body.style.backgroundColor = '#f0f8ff'; 
                     const frost = document.createElement('div');
                     frost.className = 'fx-frost';
                     layer.appendChild(frost);
-                    // 加大雪量
                     for(let i=0; i<20; i++) setTimeout(createSnow, i*50);
                     break;
                 case 'stars': // 7. 星空
                     document.getElementById('bg-base-layer').style.opacity = '0';
-                    body.style.backgroundColor = '#0f172a'; // 深夜蓝
-                    // 星星
+                    body.style.backgroundColor = '#0f172a'; 
                     for(let i=0; i<50; i++) {
                         const s = document.createElement('div');
                         s.className = 'fx-star';
@@ -509,7 +617,6 @@
                         s.style.animationDelay = Math.random()*2 + 's';
                         layer.appendChild(s);
                     }
-                    // 流星
                     for(let i=0; i<3; i++) {
                         const ss = document.createElement('div');
                         ss.className = 'fx-shooting-star';
@@ -534,12 +641,9 @@
                         layer.appendChild(g);
                     }
                     break;
-                default:
-                    break;
             }
         }
 
-        // 粒子生成辅助函数
         function createParticles(container, charOrArr, count, className, minDur, maxDur, randomizeChar=false) {
             for(let i=0; i<count; i++) {
                 const p = document.createElement('div');
@@ -547,7 +651,6 @@
                 if(randomizeChar && Array.isArray(charOrArr)) {
                     p.innerText = charOrArr[Math.floor(Math.random()*charOrArr.length)];
                 } else if (randomizeChar) {
-                     // 如果传入是单字符但开启随机(气球)，这里其实不需要特殊处理，除非有颜色变化
                      p.innerText = charOrArr; 
                      if(className === 'fx-laugh') p.innerText = ['😂','🤣','😹','😆'][Math.floor(Math.random()*4)];
                      if(className === 'fx-balloon') p.style.filter = `hue-rotate(${Math.random()*360}deg)`;
@@ -565,14 +668,13 @@
 
         // ================= 常规逻辑 =================  
 
-        // 0. 首页背景
         function spawnBgIcon() {
             const container = document.getElementById('bg-base-layer');
             const icons = ['🎄', '🎅', '🦌', '🎁', '🔔'];
             setInterval(() => {
                 if(container.childElementCount > 10) return;
                 const icon = document.createElement('div');
-                icon.className = 'floating-icon'; // 复用之前的css或inline
+                icon.className = 'floating-icon'; 
                 icon.style.cssText = `position:absolute; font-size:3rem; opacity:0.15; filter:blur(2px); user-select:none; animation: floatUp 20s linear infinite;`;
                 icon.innerText = icons[Math.floor(Math.random()*icons.length)];
                 icon.style.left = Math.random()*90 + 'vw';
@@ -584,17 +686,36 @@
             document.head.appendChild(style);
         }
 
-        // 1. 场景切换
+        // [核心] 优化的转场逻辑
         function showStage(id) {
-            document.querySelectorAll('.overlay-stage').forEach(el => {
-                if(el.classList.contains('active')) el.classList.remove('active');
-                setTimeout(() => { if(!el.classList.contains('active')) el.style.display = 'none'; }, 800);
-            });
-            const target = document.getElementById(id);
-            target.style.display = 'flex'; target.offsetHeight; target.classList.add('active');
+            // 1. 找到当前激活的场景，执行退出动画
+            const current = document.querySelector('.overlay-stage.active');
+            
+            const enterNewStage = () => {
+                const target = document.getElementById(id);
+                if(target) {
+                    target.style.display = 'flex';
+                    // 强制重绘确保transition生效
+                    target.offsetHeight; 
+                    target.classList.add('active');
+                }
+            };
+
+            if (current) {
+                current.classList.add('exit'); // 触发退出CSS动画
+                current.classList.remove('active');
+                
+                // 等待CSS过渡结束 (0.5s)
+                setTimeout(() => {
+                    current.style.display = 'none';
+                    current.classList.remove('exit');
+                    enterNewStage();
+                }, 550);
+            } else {
+                enterNewStage();
+            }
         }
 
-        // 2. 打字机
         function typeWriter(element, text, onComplete) {
             element.innerHTML = ""; element.classList.add('typing-cursor');
             let i = 0;
@@ -614,7 +735,6 @@
 
         function enableBtn(id) { document.getElementById(id).classList.remove('disabled'); }
 
-        // 3. 音乐
         function toggleMusic(e) {
             e.stopPropagation();
             if (bgm.paused) {
@@ -624,7 +744,6 @@
             }
         }
 
-        // 4. 回忆流程
         function startMemories() {
             if(bgm.paused) toggleMusic({stopPropagation:()=>{}});
             showStage('stage-1-memory');
@@ -638,48 +757,50 @@
             const textEl = document.getElementById('mem-text');
             const btn = document.getElementById('btn-mem');
 
-            // 应用专属主题
             applyTheme(data.theme);
 
-            textEl.style.opacity = '0.5';
-            setTimeout(()=> textEl.style.opacity = '1', 100);
-
-            titleEl.innerText = data.t;
-            btn.classList.add('disabled'); 
-
-            typeWriter(textEl, data.c, () => {
-                enableBtn('btn-mem');
-            });
+            // 内容切换小动画
+            textEl.style.opacity = '0';
+            setTimeout(() => {
+                textEl.style.opacity = '1';
+                titleEl.innerText = data.t;
+                btn.classList.add('disabled'); 
+                typeWriter(textEl, data.c, () => {
+                    enableBtn('btn-mem');
+                });
+            }, 200);
         }
 
         function nextMemory() {
             if (currentMemIndex < MEMORIES.length - 1) {
                 renderMemory(currentMemIndex + 1);
             } else {
-                // 清除回忆特效，恢复默认，进入Invite
-                applyTheme('default');
+                applyTheme('default'); // 恢复默认背景
                 showStage('stage-2-invite');
                 setTimeout(() => {
                     typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
-                        // 自动开启爱心动画，无需点击
+                        // 自动流程：1.5秒后自动开始游戏
                         setTimeout(startHeartAnimation, 1500);
                     });
-                }, 500);
+                }, 600);
             }
         }
 
-        // 5. 全自动爱心动画
         function startHeartAnimation() {
+            // 这里的逻辑稍有不同：Invite 退出，GameLayer 浮现
             const inviteStage = document.getElementById('stage-2-invite');
+            // 手动触发Invite的退出动画
+            inviteStage.classList.add('exit');
             inviteStage.classList.remove('active');
-            
+            setTimeout(() => { inviteStage.style.display = 'none'; inviteStage.classList.remove('exit'); }, 600);
+
             const layer = document.getElementById('game-layer');
             layer.style.display = 'block'; 
 
             const w = window.innerWidth; const h = window.innerHeight;
             const cx = w / 2; const cy = h / 2;
             const scale = Math.min(w, h) < 400 ? 11 : 14; 
-            const delay = 200; // 节奏稍快一点
+            const delay = 200; 
 
             MESSAGES.forEach((msg, i) => {
                 const t = (i / MESSAGES.length) * 2 * Math.PI;
@@ -694,13 +815,17 @@
                 box.innerText = msg;
                 box.style.left = (cx - 30) + 'px'; box.style.top = (cy - 30) + 'px';
                 layer.appendChild(box);
-                box.offsetHeight;
+                
+                // 爆炸特效粒子
+                createExplosion(cx, cy);
 
                 setTimeout(() => {
                     box.style.left = targetX + 'px';
                     box.style.top = targetY + 'px';
                     box.style.opacity = '1';
                     box.style.transform = 'scale(1)';
+                    // 随机开始呼吸动画，避免整齐划一
+                    setTimeout(() => box.classList.add('floating'), 1000 + Math.random() * 1000);
                 }, i * delay); 
             });
 
@@ -708,25 +833,60 @@
             setTimeout(finishGame, totalTime);
         }
 
+        function createExplosion(x, y) {
+            // 简单的粒子生成
+            for(let k=0; k<4; k++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.background = ['#FF8FA3','#B5EAD7','#FFE577'][Math.floor(Math.random()*3)];
+                p.style.left = x + 'px'; p.style.top = y + 'px';
+                
+                // 随机方向
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 50 + 20;
+                p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+                
+                p.style.animation = `explode 0.6s ease-out forwards`;
+                document.getElementById('game-layer').appendChild(p);
+                setTimeout(()=>p.remove(), 600);
+            }
+        }
+
         function finishGame() {
-            document.getElementById('game-layer').style.display = 'none';
+            // 隐藏游戏层
+            const layer = document.getElementById('game-layer');
+            // 简单渐隐
+            layer.style.transition = 'opacity 0.8s';
+            layer.style.opacity = '0';
+            setTimeout(() => { layer.style.display = 'none'; }, 800);
+            
             showStage('stage-3-card');
         }
 
         function revealFinal() {
             const cardStage = document.getElementById('stage-3-card');
+            // 触发退出动画
+            cardStage.classList.add('exit');
             cardStage.classList.remove('active');
+            
+            // 开启白屏闪光
             const flash = document.getElementById('flash-overlay');
             flash.style.opacity = '1';
             
+            // 隐藏顶部的灯（为了结局干净）
+            document.querySelector('.light-rope').classList.add('hidden');
+
             setTimeout(() => {
                 cardStage.style.display = 'none';
                 const mainScene = document.getElementById('main-scene');
                 mainScene.classList.add('active');
-                // 结局也是金色特效
+                
                 applyTheme('gold'); 
-                setTimeout(() => { flash.style.opacity = '0'; }, 100);
-            }, 800);
+                
+                // 慢慢淡出白屏，显露结局
+                setTimeout(() => { flash.style.opacity = '0'; }, 500);
+            }, 1200); // 等待更长一点，制造悬念
         }
 
         function createSnow() {
