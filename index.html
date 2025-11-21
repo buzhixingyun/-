@@ -368,25 +368,43 @@
             100% { transform: translateY(-50px) scale(2.5); opacity: 0; } 
         }
 
-        /* --- NEW CENTER PIECE: HOT AIR BALLOON --- */
+        /* --- NEW CENTER PIECE: HOT AIR BALLOON (Orbiting) --- */
         .balloon-wrapper {
             position: absolute; top: 40%; left: 50%;
-            transform: translate(-50%, -50%);
             z-index: 12; cursor: pointer;
-            animation: floatBalloon 6s ease-in-out infinite;
+            width: 120px; height: 180px;
+            /* Adjust pivot to center */
+            margin-left: -60px; margin-top: -90px; 
+            /* Orbit Animation: rotate wrapper, counter-rotate content */
+            animation: orbitMe 25s linear infinite;
+            user-select: none;
         }
-        .balloon-wrapper:active { transform: translate(-50%, -50%) scale(0.95); }
+        /* Pause on hover/click for easier reading */
+        .balloon-wrapper:hover { animation-play-state: paused; }
+        .balloon-wrapper:active { transform: scale(0.95); } /* Scale needs to be careful with orbit, handled in JS or inner */
         
-        @keyframes floatBalloon {
-            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-            50% { transform: translate(-50%, -50%) translateY(-20px); }
+        @keyframes orbitMe {
+            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        }
+        
+        /* Media Query for smaller screens to reduce orbit radius */
+        @media (max-width: 450px) {
+            @keyframes orbitMe {
+                from { transform: rotate(0deg) translateX(70px) rotate(0deg); }
+                to { transform: rotate(360deg) translateX(70px) rotate(-360deg); }
+            }
         }
 
         .hot-air-balloon {
             position: relative; display: flex; flex-direction: column; align-items: center;
+            transition: transform 0.3s;
         }
+        /* Shake only applies to the inner part, not disrupting the orbit */
+        .hot-air-balloon.anim-shake { animation: shakeBalloon 0.5s ease-in-out; }
+
         .balloon-body {
-            width: 120px; height: 140px;
+            width: 100px; height: 120px;
             background: radial-gradient(circle at 30% 30%, #fff, var(--primary));
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             position: relative; overflow: hidden;
@@ -395,31 +413,29 @@
         /* Decor stripes */
         .balloon-body::before {
             content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 20px; height: 100%; background: var(--secondary); opacity: 0.6;
+            width: 16px; height: 100%; background: var(--secondary); opacity: 0.6;
             border-radius: 50%;
         }
         .balloon-body::after {
-            content: ''; position: absolute; top: 40%; left: 0; width: 100%; height: 15px;
+            content: ''; position: absolute; top: 40%; left: 0; width: 100%; height: 12px;
             background: var(--accent); opacity: 0.8; transform: rotate(-5deg);
         }
         
         .balloon-ropes {
-            width: 40px; height: 20px; border-left: 2px solid #8d6e63; border-right: 2px solid #8d6e63;
-            margin-top: -5px;
+            width: 30px; height: 15px; border-left: 2px solid #8d6e63; border-right: 2px solid #8d6e63;
+            margin-top: -4px;
         }
         .balloon-basket {
-            width: 40px; height: 30px; background: #8d6e63;
-            border-radius: 0 0 8px 8px;
+            width: 32px; height: 24px; background: #8d6e63;
+            border-radius: 0 0 6px 6px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; position: relative;
+            font-size: 1rem; position: relative;
             box-shadow: 0 5px 10px rgba(0,0,0,0.1);
         }
         .balloon-basket::after {
-            content: '🎁'; position: absolute; top: -8px; font-size: 1.5rem;
+            content: '🎁'; position: absolute; top: -6px; font-size: 1.2rem;
         }
 
-        /* Shaking animation for click */
-        .anim-shake { animation: shakeBalloon 0.5s ease-in-out; }
         @keyframes shakeBalloon {
             0%, 100% { transform: rotate(0deg); }
             25% { transform: rotate(-10deg); }
@@ -483,13 +499,14 @@
             background: #fff; padding: 8px 16px; border-radius: 16px;
             font-size: 1rem; color: #FF8FA3; font-weight: bold;
             white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            opacity: 0; pointer-events: none; font-family: 'Fredoka One';
+            opacity: 0; pointer-events: none; font-family: 'Fredoka One', 'Ma Shan Zheng';
             z-index: 100;
+            max-width: 200px; white-space: normal; text-align: center; line-height: 1.2;
         }
-        .pop-bubble.show { animation: popShow 2s forwards; }
+        .pop-bubble.show { animation: popShow 3s forwards; }
         @keyframes popShow { 
             0% { opacity: 0; transform: translate(-50%, 10px) scale(0.8); } 
-            20% { opacity: 1; transform: translate(-50%, 0) scale(1); } 
+            10% { opacity: 1; transform: translate(-50%, 0) scale(1); } 
             80% { opacity: 1; transform: translate(-50%, -15px); }
             100% { opacity: 0; transform: translate(-50%, -40px); } 
         }
@@ -697,7 +714,7 @@
             <div class="moon">🌕</div>
         </div>
 
-        <!-- Center Piece: Hot Air Balloon -->
+        <!-- Center Piece: Hot Air Balloon (Now Orbiting) -->
         <div class="balloon-wrapper" onclick="interact('balloon', this)">
             <div class="pop-bubble">梦幻热气球</div>
             <div class="hot-air-balloon">
@@ -793,6 +810,31 @@
             { t: "(8/9) 🎈", c: "谢谢你出现在我的生命里，\n成为我特别的朋友。\n希望在未来的日子里，\n我们可以继续一起大笑，一起可可爱爱。", theme: 'balloons' },
             { t: "(9/9) 🎄", c: "最后，\n亲爱的小胡同学，\n愿你永远被爱包围，万事胜意！\n圣诞快乐，不止圣诞，每天都快乐！", theme: 'gold' }
         ];
+
+        const BALLOON_MESSAGES = [
+            "圣诞快乐，天天开心！", "友谊长存，岁岁年年！", "你是最可爱的！", "愿你温暖过冬！", "好运正在派送中...",
+            "暴富暴富暴富！", "想吃火锅了吗？", "记得多喝热水哦~", "永远做自己！", "前程似锦，未来可期！",
+            "所有的美好如期而至。", "你是最棒的！", "别熬夜啦，变秃头！", "快乐不止圣诞节！", "愿你被世界温柔以待。",
+            "心想事成！", "万事胜意！", "平安喜乐！", "保持热爱，奔赴山海。", "笑口常开！",
+            "遇见的都是天意。", "拥有的都是幸运。", "愿你眼里有光。", "愿你心中有爱。", "好心情每一天！",
+            "你是我的宝藏朋友。", "要一直快乐下去哦。", "烦恼通通走开！", "水逆退散！", "锦鲤附体！",
+            "吃不胖！", "睡得香！", "数钱数到手抽筋！", "出门见喜！", "抬头见财！",
+            "生活明朗，万物可爱。", "因为有你，冬天很暖。", "谢谢你的陪伴。", "未来我们一起走。", "苟富贵，勿相忘！",
+            "游戏把把C！", "排位连胜！", "落地有枪！", "把把吃鸡！", "不仅可爱，还很有才！",
+            "魅力无限！", "人见人爱，花见花开。", "你是电，你是光！", "你是唯一的High咖。", "快乐星球居民。",
+            "愿你拥有超能力。", "百毒不侵。", "诸邪退散。", "欧气满满！", "元气满满！",
+            "做个快乐的小吃货。", "奶茶自由！", "火锅自由！", "烤肉自由！", "甜点自由！",
+            "每天都被爱包围。", "收到好多好多礼物。", "袜子装不下礼物啦。", "麋鹿迷路了，礼物还在路上。", "圣诞老人最喜欢你。",
+            "雪花是冬天的来信。", "你是我的独家记忆。", "友谊的小船永不翻。", "干杯🍻", "Cheer up!",
+            "Be happy!", "Good luck!", "Merry Christmas!", "Happy New Year!", "Nice to meet you!",
+            "愿梦里有星辰。", "醒来有阳光。", "嘴角上扬15度。", "今天也是元气满满的一天！", "冲鸭！",
+            "加油，小胡同学！", "没有什么可以打倒你。", "相信自己。", "你值得最好的一切。", "拥抱未来。",
+            "不负韶华。", "只争朝夕。", "快乐至上。", "知足常乐。", "顺其自然。",
+            "随遇而安。", "心之所向。", "素履以往。", "可可爱爱。", "奇奇怪怪。",
+            "没有文案，只有祝福。", "最后一条：永远快乐！", "特别的爱给特别的你。", "愿你三冬暖。", "愿你春不寒。",
+            "愿你天黑有灯。", "愿你下雨有伞。", "愿你路上有良人相伴。", "圣诞节快乐呀！"
+        ];
+        let availableBalloonMsgs = [...BALLOON_MESSAGES];
   
         // ================= 系统变量 =================  
         const bgm = document.getElementById('bgm');
@@ -1186,6 +1228,16 @@
                 case 'balloon':
                     const body = el.querySelector('.hot-air-balloon');
                     if(body) body.classList.add('anim-shake');
+                    
+                    // Pick a unique random message
+                    if (availableBalloonMsgs.length === 0) {
+                        availableBalloonMsgs = [...BALLOON_MESSAGES];
+                    }
+                    const randomIndex = Math.floor(Math.random() * availableBalloonMsgs.length);
+                    const msg = availableBalloonMsgs.splice(randomIndex, 1)[0];
+                    
+                    if(bubble) bubble.innerText = msg;
+
                     // Drop a particle
                     createExplosion(el.getBoundingClientRect().left + 60, el.getBoundingClientRect().top + 140);
                     break;
