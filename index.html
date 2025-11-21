@@ -358,7 +358,8 @@
                 To: 最可爱的小胡同学 📝  
             </h3>  
             <div class="dialog-content" id="invite-text"></div>  
-            <button class="action-btn disabled" id="btn-invite" onclick="startHeartAnimation()">  
+            <!-- 全自动模式，隐藏按钮 -->
+            <button class="action-btn disabled" id="btn-invite" style="display:none;">  
                 接收祝福 ✨  
             </button>  
         </div>  
@@ -660,7 +661,8 @@
                 showStage('stage-2-invite');
                 setTimeout(() => {
                     typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
-                        enableBtn('btn-invite');
+                        // 自动开启爱心动画，无需点击
+                        setTimeout(startHeartAnimation, 1500);
                     });
                 }, 500);
             }
