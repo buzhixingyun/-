@@ -325,6 +325,138 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
+        /* --- ROOM DECORATIONS (Background Elements) --- */
+        .room-decor-left {
+            position: absolute; bottom: 80px; left: 5%;
+            display: flex; flex-direction: column; align-items: center;
+            z-index: 5; pointer-events: none;
+        }
+        .room-decor-right {
+            position: absolute; bottom: 80px; right: 5%;
+            display: flex; flex-direction: column; align-items: center;
+            z-index: 5; pointer-events: none;
+        }
+
+        /* Fireplace */
+        .fireplace {
+            width: 120px; height: 100px;
+            background: #8d6e63;
+            border-radius: 4px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: flex; justify-content: center; align-items: flex-end;
+            border: 2px solid #5d4037;
+        }
+        .fireplace-inner {
+            width: 70px; height: 60px;
+            background: #3e2723;
+            border-radius: 40px 40px 0 0;
+            position: relative;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: flex-end;
+        }
+        .fire {
+            font-size: 2rem; position: absolute; bottom: -5px;
+            animation: fireBurn 0.5s infinite alternate;
+            filter: drop-shadow(0 0 10px orange);
+        }
+        @keyframes fireBurn { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+        .mantel {
+            position: absolute; top: -10px; left: -10px;
+            width: 140px; height: 12px;
+            background: #5d4037; border-radius: 4px;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+        }
+        .stocking {
+            position: absolute; top: 2px; right: 10px;
+            font-size: 1.5rem; transform: rotate(10deg);
+        }
+
+        /* Wall Frames */
+        .wall-frame {
+            width: 80px; height: 100px;
+            background: #fff; border: 4px solid #d4a373;
+            margin-bottom: 40px; /* Space above fireplace */
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: rotate(-2deg);
+        }
+        .wall-frame:nth-child(2) { width: 100px; height: 80px; transform: rotate(2deg); margin-bottom: 20px; }
+
+        /* Bed */
+        .cozy-bed {
+            position: relative;
+            width: 160px; height: 100px;
+        }
+        .bed-frame {
+            position: absolute; bottom: 0; width: 100%; height: 40px;
+            background: #fff0f5; border-radius: 8px;
+            border: 2px solid #ff8fa3;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.1);
+        }
+        .bed-head {
+            position: absolute; bottom: 40px; right: 0;
+            width: 20px; height: 50px;
+            background: #ff8fa3; border-radius: 4px;
+        }
+        .bed-blanket {
+            position: absolute; bottom: 0; left: 0;
+            width: 110px; height: 45px;
+            background: #b5ead7;
+            border-radius: 8px 0 0 8px;
+        }
+        .pillow {
+            position: absolute; bottom: 45px; right: 25px;
+            font-size: 1.8rem; transform: rotate(-5deg);
+        }
+        .cat-sleep {
+            position: absolute; bottom: 35px; left: 30px;
+            font-size: 1.8rem; z-index: 2;
+        }
+
+        /* Window */
+        .wall-window {
+            width: 100px; height: 100px;
+            background: #2c3e50;
+            border: 6px solid #fff;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+        .wall-window::before {
+            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 4px;
+            background: #fff; transform: translateY(-50%);
+        }
+        .wall-window::after {
+            content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 4px;
+            background: #fff; transform: translateX(-50%);
+        }
+        .moon-view {
+            position: absolute; top: 10px; right: 10px; font-size: 1.2rem;
+        }
+
+        /* Floor Rug */
+        .rug {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 500px; height: 120px;
+            background: radial-gradient(ellipse at center, #d7ccc8, transparent 70%);
+            border-radius: 50%;
+            z-index: 4; /* Behind tree(10) and decor(5) */
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .room-decor-left { left: -30px; transform: scale(0.7); transform-origin: bottom left; }
+            .room-decor-right { right: -30px; transform: scale(0.7); transform-origin: bottom right; }
+            .wall-frame { display: none; } /* Simplify for mobile */
+            .wall-window { margin-bottom: 10px; width: 80px; height: 80px; }
+            .rug { width: 350px; }
+        }
+
         /* --- GIANT TREE & 3D ORBIT SYSTEM --- */
         
         /* The Central Stage */
@@ -734,7 +866,7 @@
         </div>
     </div>
   
-    <!-- 最终场景 (Redesigned) -->  
+    <!-- 最终场景 (Redesigned with Cozy Decor) -->  
     <div id="main-scene">  
         <div class="scene-header">
             <h1 class="final-title">Merry Christmas! 小胡同学</h1>  
@@ -743,6 +875,34 @@
         
         <!-- Flying Sleigh (Background) -->
         <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
+
+        <!-- Left Decor -->
+        <div class="room-decor-left">
+            <div class="wall-frame">🖼️</div>
+            <div class="fireplace">
+                <div class="mantel"><div class="stocking">🧦</div></div>
+                <div class="fireplace-inner">
+                    <div class="fire">🔥</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Decor -->
+        <div class="room-decor-right">
+            <div class="wall-window">
+                <div class="moon-view">🌙</div>
+            </div>
+            <div class="cozy-bed">
+                <div class="bed-head"></div>
+                <div class="bed-frame"></div>
+                <div class="bed-blanket"></div>
+                <div class="pillow">☁️</div>
+                <div class="cat-sleep">🐈</div>
+            </div>
+        </div>
+
+        <!-- Center Rug -->
+        <div class="rug"></div>
 
         <!-- The Center Stage -->
         <div class="center-stage">
