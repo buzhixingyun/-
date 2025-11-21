@@ -269,6 +269,47 @@
         .msg-box:nth-child(4n+3) { background: rgba(255, 245, 186, 0.95); color: #D4A373; }  
         .msg-box:nth-child(4n+4) { background: rgba(255, 255, 255, 0.95); color: #FF8FA3; border: 2px solid #FF8FA3; }  
 
+        /* --- Photo Slideshow Layer (NEW) --- */
+        .photo-frame {
+            background: white;
+            padding: 15px 15px 45px 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            transform: rotate(-3deg) scale(0.9);
+            width: 85%; max-width: 400px;
+            aspect-ratio: 4/5;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.8s ease;
+        }
+        
+        .photo-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            background-color: #f0f0f0;
+            filter: sepia(0.2); /* Slight nostalgic tint */
+        }
+
+        .photo-tape {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+            width: 120px; height: 35px;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        /* Animation for swapping photos */
+        .photo-frame.show {
+            animation: memoryBreath 5s ease-in-out infinite alternate;
+            opacity: 1;
+        }
+        
+        @keyframes memoryBreath {
+            0% { transform: rotate(-3deg) scale(1); }
+            100% { transform: rotate(-2deg) scale(1.05); }
+        }
+
         /* --- Final Gift Card --- */  
         .welcome-card {  
             background: var(--card-bg); width: 90%; max-width: 450px; padding: 40px 30px;  
@@ -835,6 +876,14 @@
     <!-- 爱心动画层 -->  
     <div id="game-layer"></div>  
   
+    <!-- Memory Photo Slideshow -->
+    <div id="stage-photo-gallery" class="overlay-stage">
+        <div class="photo-frame" id="photo-frame">
+            <div class="photo-tape"></div>
+            <img id="photo-display" class="photo-img" src="" alt="Memory" />
+        </div>
+    </div>
+
     <!-- 礼物卡片 -->  
     <div id="stage-3-card" class="overlay-stage">  
         <div class="welcome-card">  
@@ -950,6 +999,13 @@
     <script>  
         // ================= 数据配置 =================  
         
+        // [NEW] 照片回忆录链接 (您可以随时替换这些链接)
+        const PHOTO_MEMORIES = [
+            "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=800&q=80", // 示例：雪景
+            "https://images.unsplash.com/photo-1511268011861-691ed93f4558?auto=format&fit=crop&w=800&q=80", // 示例：装饰
+            "https://images.unsplash.com/photo-1576607387131-378d67d5d11e?auto=format&fit=crop&w=800&q=80"  // 示例：礼物
+        ];
+
         const INTRO_TEXT = "这是我们认识后我陪你度过的第一个圣诞节\n谨以此纪念我们的友谊\n在这个寒冷的冬天，希望可以为你带来一丝温暖";
         const INVITE_TEXT = "Hello，圣诞快乐！\n这里有一份特别的礼物送给你。\n准备好了吗？";
 
@@ -1354,7 +1410,50 @@
             layer.style.opacity = '0';
             setTimeout(() => { layer.style.display = 'none'; }, 800);
             
-            showStage('stage-3-card');
+            // [CHANGED] Instead of going to card directly, go to photo slideshow
+            startPhotoSlideshow();
+        }
+
+        // [NEW] Photo Slideshow Logic
+        function startPhotoSlideshow() {
+            if (!PHOTO_MEMORIES || PHOTO_MEMORIES.length === 0) {
+                showStage('stage-3-card');
+                return;
+            }
+            
+            showStage('stage-photo-gallery');
+            const frame = document.getElementById('photo-frame');
+            const img = document.getElementById('photo-display');
+            let idx = 0;
+
+            // Start animation loop
+            const playSlide = () => {
+                if (idx >= PHOTO_MEMORIES.length) {
+                    // Finished, go to next stage
+                    showStage('stage-3-card');
+                    return;
+                }
+
+                // Fade out frame slightly to change image
+                frame.style.opacity = '0';
+                
+                setTimeout(() => {
+                    img.src = PHOTO_MEMORIES[idx];
+                    // Random tilt for each photo
+                    frame.style.transform = `rotate(${Math.random()*6 - 3}deg) scale(0.9)`;
+                    
+                    // Load image then show
+                    img.onload = () => {
+                        frame.style.opacity = '1';
+                        frame.classList.add('show');
+                        idx++;
+                        // Show for 3.5 seconds
+                        setTimeout(playSlide, 3500);
+                    };
+                }, 600);
+            };
+
+            playSlide();
         }
 
         // === NEW: Handle Balloon Interaction ===
