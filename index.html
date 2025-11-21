@@ -381,7 +381,7 @@
         }
         /* Pause on hover/click for easier reading */
         .balloon-wrapper:hover { animation-play-state: paused; }
-        .balloon-wrapper:active { transform: scale(0.95); } /* Scale needs to be careful with orbit, handled in JS or inner */
+        /* .balloon-wrapper:active { transform: scale(0.95); }  Removed to handle internal clicks better */
         
         @keyframes orbitMe {
             from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
@@ -431,7 +431,9 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem; position: relative;
             box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
+        .balloon-basket:hover { transform: scale(1.2); cursor: pointer; }
         .balloon-basket::after {
             content: '🎁'; position: absolute; top: -6px; font-size: 1.2rem;
         }
@@ -440,6 +442,21 @@
             0%, 100% { transform: rotate(0deg); }
             25% { transform: rotate(-10deg); }
             75% { transform: rotate(10deg); }
+        }
+
+        /* Falling Star from Balloon */
+        .falling-star {
+            position: fixed; 
+            color: #FFD700;
+            font-size: 1.2rem;
+            pointer-events: none;
+            z-index: 11; /* Behind balloon (12) but front of trees (5) */
+            animation: starDrop 1.5s linear forwards;
+            text-shadow: 0 0 5px #fff;
+        }
+        @keyframes starDrop {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(150px) rotate(180deg); opacity: 0; }
         }
 
 
@@ -700,7 +717,22 @@
             </div>  
             <button class="action-btn" style="float:none;" onclick="revealFinal()">拆开礼物 🎁</button>  
         </div>  
-    </div>  
+    </div> 
+    
+    <!-- Secret Code Modal (Hidden by default) -->
+    <div id="secret-modal" class="overlay-stage" style="z-index: 2000;">
+        <div class="dialog-box" style="text-align: center;">
+            <div class="dialog-pin"></div>
+            <h3 style="color: #FF8FA3; font-family: 'Fredoka One'; font-size: 1.5rem;">🎉 惊喜发现！</h3>
+            <div class="dialog-content" style="font-size: 1.4rem; color: #5d4037; min-height: auto;">
+                恭喜你发现了我！<br>
+                我们的暗语是：<br>
+                <span style="font-size: 1.8rem; color: #FF8FA3; font-weight: bold; display: block; margin: 15px 0; font-family: 'Fredoka One';">11050830</span>
+                快来找我兑换礼物吧 🤩
+            </div>
+            <button class="action-btn" style="float:none;" onclick="closeSecret()">收到 🎁</button>
+        </div>
+    </div>
   
     <!-- 最终场景 (Updated: Interactive & Richer) -->  
     <div id="main-scene">  
@@ -714,8 +746,8 @@
             <div class="moon">🌕</div>
         </div>
 
-        <!-- Center Piece: Hot Air Balloon (Now Orbiting) -->
-        <div class="balloon-wrapper" onclick="interact('balloon', this)">
+        <!-- Center Piece: Hot Air Balloon (Orbiting) -->
+        <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
             <div class="pop-bubble">梦幻热气球</div>
             <div class="hot-air-balloon">
                 <div class="balloon-body"></div>
@@ -1192,6 +1224,54 @@
             showStage('stage-3-card');
         }
 
+        // New function to separate balloon interactions
+        function handleBalloonClick(e, wrapper) {
+            e.stopPropagation();
+            // Check if the click originated from the basket
+            if (e.target.closest('.balloon-basket')) {
+                const modal = document.getElementById('secret-modal');
+                modal.style.display = 'flex';
+                // Force reflow
+                void modal.offsetWidth;
+                modal.classList.add('active');
+            } else {
+                // Regular interaction
+                interact('balloon', wrapper);
+            }
+        }
+
+        function closeSecret() {
+            const modal = document.getElementById('secret-modal');
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 600);
+        }
+
+        // Starts dropping stars from the balloon
+        function startBalloonStars() {
+            const balloon = document.querySelector('.balloon-wrapper');
+            if(!balloon) return;
+            
+            // Create a star every 600ms
+            setInterval(() => {
+                const scene = document.getElementById('main-scene');
+                if (!scene || !scene.classList.contains('active')) return;
+
+                const rect = balloon.getBoundingClientRect();
+                // Only spawn if visible on screen
+                if (rect.top > window.innerHeight || rect.left < -100) return;
+
+                const star = document.createElement('div');
+                star.className = 'falling-star';
+                star.innerText = ['✨', '⭐', '🌟'][Math.floor(Math.random()*3)];
+                // Add some randomness to position relative to center of balloon
+                star.style.left = (rect.left + rect.width / 2 + (Math.random() * 20 - 10)) + 'px';
+                star.style.top = (rect.top + rect.height / 2 + 20) + 'px';
+                
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 1500);
+            }, 600);
+        }
+
         // Interaction handler for final scene
         function interact(type, el) {
             const bubble = el.querySelector('.pop-bubble');
@@ -1281,8 +1361,9 @@
                 // 慢慢淡出白屏，显露结局
                 setTimeout(() => { 
                     flash.style.opacity = '0'; 
-                    // Start flying sleigh animation
+                    // Start flying animations
                     startSleighLoop();
+                    startBalloonStars();
                 }, 500);
             }, 1200); 
         }
