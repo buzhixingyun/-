@@ -1305,22 +1305,39 @@
 
         // 检查时间并决定去留
         function initSystemLock() {
-            // Target: 2024-12-25 00:00:00 Beijing Time (UTC+8)
-            // Date.UTC(year, monthIndex, day, hour, min, sec)
-            // Beijing 00:00 = UTC Prev Day 16:00
-            const targetTimestamp = Date.UTC(2024, 11, 24, 16, 0, 0); 
-            const now = new Date().getTime();
+            const now = new Date();
+            const currentYear = now.getUTCFullYear(); 
+
+            // Beijing is UTC+8.
+            // Target is Dec 25 00:00 Beijing Time.
+            // In UTC, this is Dec 24 16:00 of the SAME year (prev day).
             
-            const layer = document.getElementById('countdown-layer');
-            
-            if (now < targetTimestamp) {
-                // [LOCKED STATE]
-                // layer is already displayed by CSS !important
-                startCountdown(targetTimestamp);
-            } else {
-                // [UNLOCKED STATE]
+            // 1. Define the target for THIS year
+            let targetDate = Date.UTC(currentYear, 11, 24, 16, 0, 0);
+
+            // 2. Define the "End of Christmas Day" for THIS year (Dec 26 00:00 Beijing)
+            let endDate = Date.UTC(currentYear, 11, 25, 16, 0, 0);
+
+            const currentTs = now.getTime();
+
+            // Logic:
+            // If now is between Start and End -> UNLOCK (It is Christmas!)
+            // If now is AFTER End -> Target is NEXT YEAR
+            // If now is BEFORE Start -> Target is THIS YEAR (already set)
+
+            if (currentTs >= targetDate && currentTs < endDate) {
+                // It is Christmas Day! Unlock immediately.
                 unlockAndStart();
+                return;
             }
+
+            if (currentTs >= endDate) {
+                // We missed it this year, set target to next year
+                targetDate = Date.UTC(currentYear + 1, 11, 24, 16, 0, 0);
+            }
+
+            // Start monitoring/countdown
+            startCountdown(targetDate);
         }
 
         // 倒计时循环
@@ -1331,16 +1348,15 @@
             const elM = document.getElementById('cd-m');
             const elS = document.getElementById('cd-s');
             
-            update();
-            const timer = setInterval(update, 1000);
-
+            // Function to calculate and update UI
             function update() {
                 const now = new Date().getTime();
                 const diff = targetTs - now;
 
                 if (diff <= 0) {
+                    // Time Reached during wait
                     clearInterval(timer);
-                    unlockAndStart(); // Time reached!
+                    unlockAndStart(); 
                     return;
                 }
 
@@ -1354,6 +1370,12 @@
                 if(elM) elM.innerText = String(minutes).padStart(2, '0');
                 if(elS) elS.innerText = String(seconds).padStart(2, '0');
             }
+
+            // Run ONCE immediately to prevent 00:00 flash
+            update();
+            
+            // Start interval
+            const timer = setInterval(update, 1000);
         }
 
         // [Step 2] 解锁并启动应用 (Entry Point for App Logic)
