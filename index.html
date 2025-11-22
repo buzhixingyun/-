@@ -174,23 +174,38 @@
             backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
         }
 
-        /* --- Dialog Box (Animated Content) --- */
+        /* --- Dialog Box (Redesigned & Themed) --- */
         .dialog-box {  
             background-color: var(--paper-color);  
-            width: 88%; max-width: 480px; padding: 35px 30px; 
-            border-radius: 24px;  
-            border: 3px solid var(--text-color);  
-            box-shadow: 8px 8px 0px rgba(212, 163, 115, 0.4);  
+            width: 88%; max-width: 440px; padding: 40px 30px; 
+            border-radius: 20px;  
+            /* Default style */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
             position: relative; 
-            max-height: 85vh; overflow-y: auto; 
+            max-height: 85vh; overflow-y: visible; 
             -webkit-overflow-scrolling: touch;
             z-index: 501;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease, background-color 0.5s, border 0.5s, box-shadow 0.5s;
             
-            /* 初始状态：稍微缩小并下移 */
             transform: scale(0.8) translateY(30px); 
             opacity: 0;
-            /* 物理弹簧入场动画 */
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+        }
+
+        /* Tape Style Pin (Default) */
+        .dialog-pin {  
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%) rotate(-1.5deg);
+            width: 110px; height: 32px; 
+            background: rgba(255, 143, 163, 0.5); /* Primary semitransparent */
+            backdrop-filter: blur(3px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border-radius: 2px;
+            z-index: 10;
+        }  
+        /* Tape texture */
+        .dialog-pin::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+            background-size: 10px 10px; opacity: 0.5;
         }
 
         /* 弹窗激活：回弹到正常大小 */
@@ -198,22 +213,16 @@
             transform: scale(1) translateY(0); 
             opacity: 1; 
         }
-        
-        /* 弹窗离场：稍微放大并淡出 (Zoom Out Fade) */
         .overlay-stage.exit .dialog-box {
             transform: scale(1.1) translateY(-10px);
             opacity: 0;
             transition: transform 0.5s ease-in, opacity 0.4s ease;
         }
-  
-        .dialog-pin {  
-            position: absolute; top: 16px; left: 50%; transform: translateX(-50%);  
-            width: 16px; height: 16px; background: var(--primary); border-radius: 50%;  
-            box-shadow: inset 2px 2px 4px rgba(255,255,255,0.6);  
-        }  
+
         .dialog-content {  
-            margin-top: 20px; font-family: 'Ma Shan Zheng', cursive; font-size: 1.3rem;  
+            margin-top: 15px; font-family: 'Ma Shan Zheng', cursive; font-size: 1.35rem;  
             line-height: 1.8; color: #5d4037; text-align: left; min-height: 80px;
+            transition: color 0.3s;
         }
         .typing-cursor::after { content: '|'; animation: blink 1s infinite; color: var(--primary); }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -222,13 +231,112 @@
             background-color: var(--primary); color: white;  
             font-family: 'Fredoka One'; font-size: 1.1rem; letter-spacing: 1px;
             padding: 12px 32px; border: none; border-radius: 50px;  
-            margin-top: 25px; cursor: pointer; float: right;  
+            margin-top: 30px; cursor: pointer; float: right;  
             box-shadow: 0 4px 0 #d86c7f;  
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: transform 0.1s, box-shadow 0.1s, background-color 0.3s;
             user-select: none;
         }  
         .action-btn:active { transform: translateY(4px); box-shadow: none; }  
         .action-btn.disabled { opacity: 0.6; pointer-events: none; filter: grayscale(1); }
+
+        /* ================= THEME SPECIFIC DIALOG STYLES ================= */
+        
+        /* 1. Sakura (Spring/Pink) */
+        .dialog-box.theme-sakura {
+            background-color: #fff0f5;
+            border: 3px solid #ffc1e3;
+            box-shadow: 0 15px 30px rgba(255, 182, 193, 0.3);
+        }
+        .dialog-box.theme-sakura::before {
+            content: '🌸'; position: absolute; top: -15px; right: -10px; font-size: 2rem; animation: rot 8s linear infinite;
+        }
+        .dialog-box.theme-sakura .dialog-pin { background: rgba(255, 105, 180, 0.4); }
+
+        /* 2. Planes (Airmail) */
+        .dialog-box.theme-planes {
+            background-color: #fcfcfc;
+            background-image: repeating-linear-gradient(135deg, #e3f2fd 0px, #e3f2fd 10px, #fff 10px, #fff 20px);
+            border: 3px dashed #87ceeb;
+            box-shadow: 10px 10px 0 rgba(135, 206, 235, 0.3);
+        }
+        .dialog-box.theme-planes .dialog-pin { background: rgba(65, 177, 225, 0.6); transform: translateX(-50%) rotate(2deg); }
+
+        /* 3. Gaming (Dark/Neon) */
+        .dialog-box.theme-gaming {
+            background: #2d1b4e;
+            border: 2px solid #00ff9d;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+        }
+        .dialog-box.theme-gaming h3 { color: #00ff9d !important; text-shadow: 0 0 8px rgba(0,255,157,0.5); }
+        .dialog-box.theme-gaming .dialog-content { color: #e0e0e0; }
+        .dialog-box.theme-gaming .action-btn { background: #7000ff; box-shadow: 0 4px 0 #4a00ac; }
+        .dialog-box.theme-gaming .dialog-pin { display: none; }
+        .dialog-box.theme-gaming::after {
+            content: 'PRESS START'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: #00ff9d; color: #2d1b4e; font-family: 'Fredoka One'; font-size: 0.8rem; padding: 2px 10px; border-radius: 4px;
+        }
+
+        /* 4. Warmth (Cozy Orange) */
+        .dialog-box.theme-warmth {
+            background: linear-gradient(to bottom, #fff8e1, #ffecb3);
+            border: 4px solid #ffb74d;
+            border-radius: 25px;
+            box-shadow: 0 15px 30px rgba(255, 167, 38, 0.25);
+        }
+        .dialog-box.theme-warmth .dialog-content { color: #d84315; }
+        .dialog-box.theme-warmth .dialog-pin { background: rgba(255, 167, 38, 0.5); }
+
+        /* 5. Laugh (Pop Art) */
+        .dialog-box.theme-laugh {
+            background-color: #fff;
+            background-image: radial-gradient(#fff176 20%, transparent 20%);
+            background-size: 20px 20px;
+            border: 4px solid #ffee58;
+            box-shadow: 8px 8px 0 #fdd835;
+        }
+        .dialog-box.theme-laugh .action-btn { background: #fbc02d; box-shadow: 0 4px 0 #f57f17; color: #fff; }
+
+        /* 6. Winter (Frosted) */
+        .dialog-box.theme-winter {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid #b3e5fc;
+            box-shadow: 0 0 25px rgba(179, 229, 252, 0.6);
+        }
+        .dialog-box.theme-winter h3 { color: #4fc3f7 !important; }
+        .dialog-box.theme-winter .dialog-pin { background: rgba(179, 229, 252, 0.8); }
+
+        /* 7. Stars (Night) */
+        .dialog-box.theme-stars {
+            background: linear-gradient(160deg, #1a237e, #3949ab);
+            border: 1px solid #7986cb;
+            box-shadow: 0 15px 40px rgba(26, 35, 126, 0.5);
+        }
+        .dialog-box.theme-stars h3 { color: #fff59d !important; }
+        .dialog-box.theme-stars .dialog-content { color: #e8eaf6; }
+        .dialog-box.theme-stars .action-btn { background: #5c6bc0; box-shadow: 0 4px 0 #3949ab; }
+        .dialog-box.theme-stars .dialog-pin { background: #ffd54f; height: 12px; width: 12px; border-radius: 50%; top: 15px; box-shadow: 0 0 10px #ffd54f; opacity: 1; transform: translateX(-50%); border:none;}
+        .dialog-box.theme-stars .dialog-pin::after { display: none; }
+
+        /* 8. Balloons (Playful) */
+        .dialog-box.theme-balloons {
+            background: #fff;
+            border: 5px solid;
+            border-image: linear-gradient(to right, #ff9a9e, #fad0c4, #a18cd1) 1;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        /* 9. Gold (Elegant) */
+        .dialog-box.theme-gold {
+            background: #fffbf0;
+            border: 3px double #ffd700;
+            box-shadow: 0 20px 50px rgba(218, 165, 32, 0.3);
+        }
+        .dialog-box.theme-gold h3 { color: #d4af37 !important; font-size: 1.6rem !important; }
+        .dialog-box.theme-gold .dialog-pin { background: linear-gradient(45deg, #ffd700, #fdb931); opacity: 0.9; border: 1px solid #fff; }
+
+        @keyframes rot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 
         /* --- Heart Animation Layer (Optimized) --- */  
         #game-layer {  
@@ -358,6 +466,14 @@
         }  
         #main-scene.active { filter: blur(0); opacity: 1; pointer-events: auto; }  
         
+        /* [NEW] Scene Content Wrapper for auto-scaling */
+        #scene-content-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            transform-origin: bottom center;
+            pointer-events: none; /* Pass through to children */
+        }
+        #scene-content-layer > * { pointer-events: auto; } /* Enable clicks for children */
+
         /* Scene Header */
         .scene-header {
             position: absolute; top: 10%; width: 100%;
@@ -939,77 +1055,79 @@
             <div class="final-subtitle">属于你的可爱冬天 ✨</div>
         </div>
         
-        <!-- Flying Sleigh (Background) -->
-        <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
+        <!-- Scene Content Layer for Responsive Scaling -->
+        <div id="scene-content-layer">
+            <!-- Flying Sleigh (Background) -->
+            <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
 
-        <!-- Left Decor -->
-        <div class="room-decor-left">
-            <div class="wall-frame">🖼️</div>
-            <div class="fireplace">
-                <div class="mantel"><div class="stocking">🧦</div></div>
-                <div class="fireplace-inner">
-                    <div class="fire">🔥</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Decor -->
-        <div class="room-decor-right">
-            <div class="wall-window">
-                <div class="moon-view">🌙</div>
-            </div>
-            <div class="cozy-bed">
-                <div class="bed-head"></div>
-                <div class="bed-frame"></div>
-                <div class="bed-blanket"></div>
-                <div class="pillow">☁️</div>
-                <div class="cat-sleep">🐈</div>
-            </div>
-        </div>
-
-        <!-- Center Rug -->
-        <div class="rug"></div>
-
-        <!-- The Center Stage -->
-        <div class="center-stage">
-            <!-- The Star Axis -->
-            <div class="tree-star">⭐</div>
-            
-            <!-- Giant Tree -->
-            <div class="giant-tree">🎄</div>
-
-            <!-- Orbiting Balloon System -->
-            <div class="orbit-container">
-                <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
-                    <div class="pop-bubble">梦幻热气球</div>
-                    <div class="hot-air-balloon">
-                        <div class="balloon-body"></div>
-                        <div class="balloon-ropes"></div>
-                        <div class="balloon-basket"></div>
+            <!-- Left Decor -->
+            <div class="room-decor-left">
+                <div class="wall-frame">🖼️</div>
+                <div class="fireplace">
+                    <div class="mantel"><div class="stocking">🧦</div></div>
+                    <div class="fireplace-inner">
+                        <div class="fire">🔥</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Dolls at the base -->
-            <div class="dolls-wrapper">
-                <div class="doll-item" onclick="interactDoll(this, '姜饼人')">
-                    <div class="pop-bubble">要吃饼干吗?</div>🍪
+            <!-- Right Decor -->
+            <div class="room-decor-right">
+                <div class="wall-window">
+                    <div class="moon-view">🌙</div>
                 </div>
-                <div class="doll-item" onclick="interactDoll(this, '小熊')">
-                    <div class="pop-bubble">抱抱~</div>🧸
+                <div class="cozy-bed">
+                    <div class="bed-head"></div>
+                    <div class="bed-frame"></div>
+                    <div class="bed-blanket"></div>
+                    <div class="pillow">☁️</div>
+                    <div class="cat-sleep">🐈</div>
                 </div>
-                <div class="doll-item" onclick="interactDoll(this, '圣诞老人')">
-                    <div class="pop-bubble">Ho Ho Ho!</div>🎅
+            </div>
+
+            <!-- Center Rug -->
+            <div class="rug"></div>
+
+            <!-- The Center Stage -->
+            <div class="center-stage">
+                <!-- The Star Axis -->
+                <div class="tree-star">⭐</div>
+                
+                <!-- Giant Tree -->
+                <div class="giant-tree">🎄</div>
+
+                <!-- Orbiting Balloon System -->
+                <div class="orbit-container">
+                    <div class="balloon-wrapper" onclick="handleBalloonClick(event, this)">
+                        <div class="pop-bubble">梦幻热气球</div>
+                        <div class="hot-air-balloon">
+                            <div class="balloon-body"></div>
+                            <div class="balloon-ropes"></div>
+                            <div class="balloon-basket"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="doll-item" onclick="interactDoll(this, '雪人')">
-                    <div class="pop-bubble">好凉快呀</div>⛄
-                </div>
-                <div class="doll-item" onclick="interactDoll(this, '驯鹿')">
-                    <div class="pop-bubble">圣诞快乐!</div>🦌
+
+                <!-- Dolls at the base -->
+                <div class="dolls-wrapper">
+                    <div class="doll-item" onclick="interactDoll(this, '姜饼人')">
+                        <div class="pop-bubble">要吃饼干吗?</div>🍪
+                    </div>
+                    <div class="doll-item" onclick="interactDoll(this, '小熊')">
+                        <div class="pop-bubble">抱抱~</div>🧸
+                    </div>
+                    <div class="doll-item" onclick="interactDoll(this, '圣诞老人')">
+                        <div class="pop-bubble">Ho Ho Ho!</div>🎅
+                    </div>
+                    <div class="doll-item" onclick="interactDoll(this, '雪人')">
+                        <div class="pop-bubble">好凉快呀</div>⛄
+                    </div>
+                    <div class="doll-item" onclick="interactDoll(this, '驯鹿')">
+                        <div class="pop-bubble">圣诞快乐!</div>🦌
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>  
     <div class="snow-ground"></div>  
   
@@ -1088,7 +1206,14 @@
 
         // ================= 初始化 =================  
         window.onload = async () => {
+            // [NEW] Init Responsive
+            initResponsive();
+            
             await document.fonts.ready;
+            
+            // Update text to show adaptation status
+            const loadingText = document.querySelector('.loading-text');
+            if(loadingText) loadingText.innerText = "正在适配设备分辨率...";
             
             // 触发进度条动画
             const bar = document.getElementById('loading-bar');
@@ -1116,6 +1241,36 @@
 
             setInterval(createSnow, 200);
         };
+
+        // [NEW] Responsive System
+        function initResponsive() {
+            const handleResize = () => {
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                
+                // Main Scene Adaptation
+                const sceneLayer = document.getElementById('scene-content-layer');
+                if(sceneLayer) {
+                    // Base design reference: 414px width (Large Mobile)
+                    // If width is smaller, scale down.
+                    let s = w / 414; 
+                    
+                    // Add constraints for very short screens to ensure tree fits
+                    if (h < 700) {
+                        const hScale = h / 800;
+                        s = Math.min(s, hScale);
+                    }
+                    
+                    // Clamp scale to avoid it being too small or too huge
+                    s = Math.min(Math.max(s, 0.6), 1.2);
+                    
+                    sceneLayer.style.transform = `scale(${s})`;
+                }
+            };
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // Initial call
+        }
 
         // ================= 特效引擎 (Theme Engine) =================  
         function applyTheme(theme) {
@@ -1326,6 +1481,14 @@
         function renderMemory(index) {
             currentMemIndex = index;
             const data = MEMORIES[index];
+            
+            // [UPDATED] Find dialog container and set theme class
+            const dialog = document.querySelector('#stage-1-memory .dialog-box');
+            if(dialog) {
+                // Reset basic class and add theme
+                dialog.className = 'dialog-box theme-' + data.theme;
+            }
+            
             const titleEl = document.getElementById('mem-title');
             const textEl = document.getElementById('mem-text');
             const btn = document.getElementById('btn-mem');
@@ -1367,7 +1530,20 @@
 
             const w = window.innerWidth; const h = window.innerHeight;
             const cx = w / 2; const cy = h / 2;
-            const scale = Math.min(w, h) < 400 ? 11 : 14; 
+            
+            // [UPDATED] Responsive Scale Calculation for Heart
+            // We need to fit x=[-16, 16], y=[-13, 13] into screen with padding.
+            // Box radius approx 30px, margin 10px -> Total buffer ~45px.
+            const xSpace = (w / 2) - 45;
+            const ySpace = (h / 2) - 60;
+            
+            // Calculate max allowed scale
+            const scaleX = xSpace / 16;
+            const scaleY = ySpace / 13;
+            
+            // Use conservative scale, cap at 15 (desktop size)
+            const scale = Math.min(scaleX, scaleY, 15);
+
             const delay = 200; 
 
             MESSAGES.forEach((msg, i) => {
