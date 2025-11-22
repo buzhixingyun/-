@@ -1279,16 +1279,16 @@
         // [UPDATED] 切换回 Gitee 链接（配合 meta no-referrer 可在国内访问）
         // 提示：如果在某些网络下依然无法加载，请下载这些图片到本地，改为本地路径 (如 "./img/1.png")
         const PHOTO_MEMORIES = [
-            "https://gitee.com/konatatata/material/raw/master/e74e3566a563c744640a12eac2a8ec7f.png",
-            "https://gitee.com/konatatata/material/raw/master/cd2319e76c903b0304e99337459f69b2.png",
-            "https://gitee.com/konatatata/material/raw/master/ca3e6bb9323f7264aadaa546fcc2f78a.png",
-            "https://gitee.com/konatatata/material/raw/master/bfbe9a1ea6b05d767dc8638d8d6e6d5b.png",
-            "https://gitee.com/konatatata/material/raw/master/ba6fb3bc26dff7f50583799adc031631.png",
-            "https://gitee.com/konatatata/material/raw/master/4e8633b4303b506c640aad08a823b80d.png",
-            "https://gitee.com/konatatata/material/raw/master/4c25d1c56fb6738b06ddba8ad941171e.png",
-            "https://gitee.com/konatatata/material/raw/master/43d9364bcbbd63e09b7e0d780cf484b4.png",
-            "https://gitee.com/konatatata/material/raw/master/3abddf62b53ddde2fdfa4aa20a010ab5.png",
-            "https://gitee.com/konatatata/material/raw/master/1379315fd98cbb7084ae18c5c4eed204.png"
+            "https://files.catbox.moe/4iuxxt.png",
+            "https://files.catbox.moe/8c7ve6.png",
+            "https://files.catbox.moe/0flkt1.png",
+            "https://files.catbox.moe/2q1m70.png",
+            "https://files.catbox.moe/asn4k2.png",
+            "https://files.catbox.moe/6si0v1.png",
+            "https://files.catbox.moe/astwp1.png",
+            "https://files.catbox.moe/q1edpc.png",
+            "https://files.catbox.moe/3m8gft.png",
+            "https://files.catbox.moe/bfwv1m.png"
         ];
 
         const INTRO_TEXT = "这是我们认识后我陪你度过的第一个圣诞节\n谨以此纪念我们的友谊\n在这个寒冷的冬天，希望可以为你带来一丝温暖";
@@ -1904,6 +1904,13 @@
         function startPhotoSlideshow() {
             // Define function to go to next stage (Invite/Game)
             const nextStage = () => {
+                 // [UPDATED] 切换BGM为纯音乐版圣诞快乐 (Instrumental Merry Christmas)
+                 if(bgm) {
+                     bgm.pause();
+                     bgm.src = "https://music.163.com/song/media/outer/url?id=26217171.mp3"; 
+                     bgm.play().catch(()=>{});
+                 }
+
                  showStage('stage-2-invite');
                  setTimeout(() => {
                     typeWriter(document.getElementById('invite-text'), INVITE_TEXT, () => {
