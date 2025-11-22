@@ -1275,10 +1275,42 @@
         let lockClickCount = 0;
         let lockClickTimer = null;
 
-        // ================= 初始化 =================  
-        window.onload = async () => {
+        // ================= 初始化逻辑 =================  
+        
+        // 1. DOM Ready: 立即开始倒计时检查 (不等待图片/字体)
+        document.addEventListener('DOMContentLoaded', () => {
             initResponsive();
-            await document.fonts.ready;
+            // [核心] 立即执行时间检查
+            checkLockStatus();
+            
+            // Setup Bypass Listener
+            const lockBtn = document.getElementById('lock-btn');
+            if(lockBtn) {
+                lockBtn.addEventListener('click', () => {
+                    lockClickCount++;
+                    if (lockClickTimer) clearTimeout(lockClickTimer);
+                    lockClickTimer = setTimeout(() => lockClickCount = 0, 1000);
+                    
+                    if(lockClickCount >= 5) {
+                       // Secret Unlock!
+                       const layer = document.getElementById('countdown-layer');
+                       layer.innerHTML = '<h2 style="color:white;">Testing Mode Unlocked! 🚀</h2>';
+                       setTimeout(() => {
+                           layer.style.opacity = '0';
+                           setTimeout(() => {
+                               layer.style.display = 'none';
+                               startLoadingSequence();
+                           }, 500);
+                       }, 500);
+                    }
+                });
+            }
+        });
+
+        // 2. Window Load: 处理媒体资源
+        window.onload = async () => {
+            // 字体加载放到这里，不阻塞核心逻辑
+            try { await document.fonts.ready; } catch(e) {}
             setInterval(createSnow, 200);
             
             const attemptPlay = () => {
@@ -1295,48 +1327,26 @@
                 });
             };
             attemptPlay();
-
-            // [REVISED] Date Lock Logic (Robust Beijing Time)
-            checkLockStatus();
-            
-            // Setup Bypass
-            const lockBtn = document.getElementById('lock-btn');
-            lockBtn.addEventListener('click', () => {
-                lockClickCount++;
-                if (lockClickTimer) clearTimeout(lockClickTimer);
-                lockClickTimer = setTimeout(() => lockClickCount = 0, 1000);
-                
-                if(lockClickCount >= 5) {
-                   // Secret Unlock!
-                   const layer = document.getElementById('countdown-layer');
-                   layer.innerHTML = '<h2 style="color:white;">Testing Mode Unlocked! 🚀</h2>';
-                   setTimeout(() => {
-                       layer.style.opacity = '0';
-                       setTimeout(() => {
-                           layer.style.display = 'none';
-                           startLoadingSequence();
-                       }, 500);
-                   }, 500);
-                }
-            });
         };
 
         function checkLockStatus() {
             // Target: 2024-12-25 00:00:00 Beijing Time (UTC+8)
-            // We construct this using strict UTC components to avoid local browser timezone issues.
-            // Dec 25 00:00:00 +8 is equivalent to Dec 24 16:00:00 UTC.
             // Date.UTC(year, monthIndex, day, hour, min, sec)
+            // Beijing 00:00 = UTC Prev Day 16:00
             const targetTimestamp = Date.UTC(2024, 11, 24, 16, 0, 0); 
-            
             const now = new Date().getTime();
             
+            const layer = document.getElementById('countdown-layer');
+            
             if (now < targetTimestamp) {
-                // Still locked
+                // Locked logic
+                if(layer) layer.style.display = 'flex'; // Ensure visible
                 startCountdown(targetTimestamp);
             } else {
-                // Unlocked
-                document.getElementById('countdown-layer').style.display = 'none';
-                document.getElementById('loading-screen').style.display = 'flex'; // Ensure loader is ready
+                // Unlocked logic
+                if(layer) layer.style.display = 'none';
+                // Check if loading screen is already running? No, init logic.
+                document.getElementById('loading-screen').style.display = 'flex';
                 startLoadingSequence();
             }
         }
@@ -1344,15 +1354,16 @@
         // 倒计时逻辑
         function startCountdown(targetTs) {
             const layer = document.getElementById('countdown-layer');
-            // Ensure it's visible (CSS default is flex now, but just in case)
-            layer.style.display = 'flex';
-            
             const elD = document.getElementById('cd-d');
             const elH = document.getElementById('cd-h');
             const elM = document.getElementById('cd-m');
             const elS = document.getElementById('cd-s');
+            
+            // Initial update
+            update();
+            const timer = setInterval(update, 1000);
 
-            const update = () => {
+            function update() {
                 const now = new Date().getTime();
                 const diff = targetTs - now;
 
@@ -1372,20 +1383,18 @@
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-                elD.innerText = String(days).padStart(2, '0');
-                elH.innerText = String(hours).padStart(2, '0');
-                elM.innerText = String(minutes).padStart(2, '0');
-                elS.innerText = String(seconds).padStart(2, '0');
-            };
-
-            update();
-            const timer = setInterval(update, 1000);
+                if(elD) elD.innerText = String(days).padStart(2, '0');
+                if(elH) elH.innerText = String(hours).padStart(2, '0');
+                if(elM) elM.innerText = String(minutes).padStart(2, '0');
+                if(elS) elS.innerText = String(seconds).padStart(2, '0');
+            }
         }
 
         // 原本的加载动画逻辑封装
         function startLoadingSequence() {
             const screen = document.getElementById('loading-screen');
-            screen.style.display = 'flex'; // Ensure visible before animating
+            if(!screen) return;
+            screen.style.display = 'flex'; 
             
             const bar = document.getElementById('loading-bar');
             
@@ -1403,9 +1412,12 @@
                 spawnBgIcon();
                 
                 setTimeout(() => {
-                    typeWriter(document.getElementById('intro-text'), INTRO_TEXT, () => {
-                        enableBtn('btn-intro');
-                    });
+                    const introEl = document.getElementById('intro-text');
+                    if(introEl) {
+                        typeWriter(introEl, INTRO_TEXT, () => {
+                            enableBtn('btn-intro');
+                        });
+                    }
                 }, 800);
             }, 1800);
         }
