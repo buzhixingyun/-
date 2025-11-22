@@ -37,8 +37,8 @@
         #countdown-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-color);
-            /* Max Z-Index to block everything */
-            z-index: 2147483647; 
+            /* High Z-Index to block normal content */
+            z-index: 2000000000; 
             /* Flex centered, !important to prevent JS overrides before check */
             display: flex !important; 
             flex-direction: column; align-items: center; justify-content: center;
@@ -76,6 +76,40 @@
             font-family: 'Ma Shan Zheng'; opacity: 0.8;
             max-width: 80%; text-align: center; line-height: 1.6;
         }
+
+        /* --- Bypass Modal (Higher than countdown) --- */
+        #bypass-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000000001; /* Higher than countdown-layer */
+            display: none;
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .bypass-box {
+            background: white; padding: 30px; border-radius: 20px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 80%; max-width: 300px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .bypass-input {
+            width: 100%; padding: 10px; margin: 20px 0;
+            border: 2px solid #eee; border-radius: 10px;
+            font-size: 1.2rem; text-align: center; font-family: 'Fredoka One';
+            color: var(--primary); outline: none;
+        }
+        .bypass-input:focus { border-color: var(--primary); }
+        .bypass-btns { display: flex; gap: 10px; justify-content: center; }
+        .bypass-btn {
+            padding: 8px 20px; border: none; border-radius: 20px;
+            font-family: 'Ma Shan Zheng'; cursor: pointer; font-size: 1rem;
+            transition: transform 0.1s;
+        }
+        .bypass-btn:active { transform: scale(0.95); }
+        .btn-confirm { background: var(--primary); color: white; }
+        .btn-cancel { background: #eee; color: #666; }
+
 
         /* --- Loading Screen (Optimized) --- */
         #loading-screen {
@@ -997,6 +1031,19 @@
         </div>
     </div>
 
+    <!-- 密码验证弹窗 (Bypass Modal) -->
+    <div id="bypass-modal">
+        <div class="bypass-box">
+            <h3 style="color: #8d6e63; font-family: 'Ma Shan Zheng'; margin-bottom: 10px;">🔒 秘密通道</h3>
+            <div style="font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">请输入暗号开启回忆</div>
+            <input type="tel" id="bypass-input" class="bypass-input" maxlength="4" placeholder="****">
+            <div class="bypass-btns">
+                <button class="bypass-btn btn-cancel" onclick="closeBypass()">取消</button>
+                <button class="bypass-btn btn-confirm" onclick="checkBypass()">确认</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 资源加载页 (Optimized) -->
     <div id="loading-screen">
         <div class="loading-icon">🎁</div>
@@ -1283,7 +1330,7 @@
             // 立即执行时间检查 - 这是最高优先级
             initSystemLock();
             
-            // 绑定开发者后门
+            // 绑定开发者后门 (Updated: Trigger Password Modal)
             const lockBtn = document.getElementById('lock-btn');
             if(lockBtn) {
                 lockBtn.addEventListener('click', () => {
@@ -1292,16 +1339,32 @@
                     lockClickTimer = setTimeout(() => lockClickCount = 0, 1000);
                     
                     if(lockClickCount >= 5) {
-                       // Secret Unlock
-                       const layer = document.getElementById('countdown-layer');
-                       layer.innerHTML = '<h2 style="color:white; font-family:sans-serif;">Developer Bypass Active 🚀</h2>';
-                       setTimeout(() => {
-                           unlockAndStart(); 
-                       }, 800);
+                       // Show Password Modal
+                       document.getElementById('bypass-modal').style.display = 'flex';
+                       // Reset count
+                       lockClickCount = 0;
                     }
                 });
             }
         });
+        
+        // Bypass Logic Functions
+        function closeBypass() {
+            document.getElementById('bypass-modal').style.display = 'none';
+            document.getElementById('bypass-input').value = '';
+        }
+
+        function checkBypass() {
+            const input = document.getElementById('bypass-input');
+            if(input.value === '0803') {
+                closeBypass();
+                // Start Unlock
+                unlockAndStart();
+            } else {
+                alert('暗号不对哦 😝');
+                input.value = '';
+            }
+        }
 
         // 检查时间并决定去留
         function initSystemLock() {
