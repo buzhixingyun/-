@@ -39,8 +39,8 @@
             background-color: var(--bg-color);
             /* High Z-Index to block normal content */
             z-index: 2000000000; 
-            /* Flex centered, !important to prevent JS overrides before check */
-            display: flex !important; 
+            /* Flex centered. Removed !important to allow JS to hide it correctly */
+            display: flex; 
             flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.8s ease;
         }
@@ -1014,7 +1014,7 @@
 
     <!-- 倒计时层 (Lock Screen) -->
     <!-- Priority 1: Max Z-Index and Inline Display Force -->
-    <div id="countdown-layer" style="display: flex !important;">
+    <div id="countdown-layer">
         <div class="lock-icon" id="lock-btn">🔒</div>
         <div class="countdown-title">礼物派送中...</div>
         <div class="countdown-timer">
@@ -1439,7 +1439,8 @@
                 layer.style.opacity = '0';
                 // Wait for fade out then destroy it
                 setTimeout(() => {
-                    layer.style.display = 'none'; // Hide completely
+                    // FORCE HIDE with priority to fix blocking issue
+                    layer.style.setProperty('display', 'none', 'important'); 
                     startLoadingSequence(); // Start App
                     initEnvironmentEffects(); // Start Snow/Music
                 }, 800);
