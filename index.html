@@ -967,8 +967,8 @@
     <div id="flash-overlay"></div>
 
     <!-- 背景音乐 (预加载) -->
-    <audio id="bgm" loop preload="auto">
-        <source src="https://github.com/buzhixingyun/xiaohuMP3/raw/refs/heads/main/Santa's%20Christmas%20Bells%20-%20Jingle%20Bells.mp3" type="audio/ogg">
+    <audio id="bgm" loop preload="auto" autoplay>
+        <source src="https://raw.githubusercontent.com/buzhixingyun/xiaohuMP3/refs/heads/main/Santa's%20Christmas%20Bells%20-%20Jingle%20Bells.mp3" type="audio/ogg">
     </audio>
     <div id="music-control" onclick="toggleMusic(event)">🎵</div>
   
@@ -1214,8 +1214,26 @@
             
             await document.fonts.ready;
             
-            // [REVERTED] Removed the loading text override
-            // The user wanted the original loading text back.
+            // [NEW] Auto-play Music Logic
+            const attemptPlay = () => {
+                bgm.play().then(() => {
+                    musicBtn.classList.add('playing');
+                    musicBtn.innerText = '🎵';
+                }).catch(() => {
+                    console.log("Autoplay blocked. Waiting for interaction.");
+                    // Fallback: Play on first user interaction (touch or click)
+                    const unlockAudio = () => {
+                        bgm.play();
+                        musicBtn.classList.add('playing');
+                        musicBtn.innerText = '🎵';
+                        document.removeEventListener('click', unlockAudio);
+                        document.removeEventListener('touchstart', unlockAudio);
+                    };
+                    document.addEventListener('click', unlockAudio);
+                    document.addEventListener('touchstart', unlockAudio);
+                });
+            };
+            attemptPlay();
 
             // 触发进度条动画
             const bar = document.getElementById('loading-bar');
