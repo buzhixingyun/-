@@ -929,6 +929,9 @@
 </head>  
 <body>  
     
+    <!-- [NEW] Subtle Debug Info (Top Left, Low Opacity) -->
+    <div id="res-debug" style="position:fixed; top:4px; left:4px; font-size:10px; opacity:0.2; color:#000; z-index:10000; pointer-events:none; font-family:sans-serif;">Init...</div>
+
     <!-- 资源加载页 (Optimized) -->
     <div id="loading-screen">
         <div class="loading-icon">🎁</div>
@@ -1211,10 +1214,9 @@
             
             await document.fonts.ready;
             
-            // Update text to show adaptation status
-            const loadingText = document.querySelector('.loading-text');
-            if(loadingText) loadingText.innerText = "正在适配设备分辨率...";
-            
+            // [REVERTED] Removed the loading text override
+            // The user wanted the original loading text back.
+
             // 触发进度条动画
             const bar = document.getElementById('loading-bar');
             const screen = document.getElementById('loading-screen');
@@ -1248,12 +1250,15 @@
                 const w = window.innerWidth;
                 const h = window.innerHeight;
                 
+                // Update debug text
+                const debugEl = document.getElementById('res-debug');
+                let s = w / 414; 
+                
                 // Main Scene Adaptation
                 const sceneLayer = document.getElementById('scene-content-layer');
                 if(sceneLayer) {
                     // Base design reference: 414px width (Large Mobile)
                     // If width is smaller, scale down.
-                    let s = w / 414; 
                     
                     // Add constraints for very short screens to ensure tree fits
                     if (h < 700) {
@@ -1266,6 +1271,8 @@
                     
                     sceneLayer.style.transform = `scale(${s})`;
                 }
+
+                if(debugEl) debugEl.innerText = `Adapt: ${w}x${h} (s:${s.toFixed(2)})`;
             };
             
             window.addEventListener('resize', handleResize);
