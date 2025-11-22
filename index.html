@@ -1341,6 +1341,7 @@
         const bgm = document.getElementById('bgm');
         const musicBtn = document.getElementById('music-control');
         let currentMemIndex = 0;
+        window.isUnlocked = false; // [NEW] Global unlock flag
         
         // ================= 核心逻辑：初始化与锁定 =================  
         
@@ -1427,6 +1428,8 @@
             
             // Function to calculate and update UI
             function update() {
+                if (window.isUnlocked) return; // [NEW] Stop updating if unlocked
+
                 const now = new Date().getTime();
                 const diff = targetTs - now;
 
@@ -1458,8 +1461,12 @@
         // [Step 2] 解锁并启动应用 (Entry Point for App Logic)
         // 只有这个函数被调用，后续的音乐、雪花、加载条才会出现
         function unlockAndStart() {
+            // [NEW] Global Flag to stop countdown logic
+            window.isUnlocked = true;
+
             const layer = document.getElementById('countdown-layer');
             if(layer) {
+                layer.style.pointerEvents = 'none'; // [FIX] Stop blocking clicks immediately
                 layer.style.opacity = '0';
                 // Wait for fade out then destroy it
                 setTimeout(() => {
@@ -1510,6 +1517,7 @@
             setTimeout(() => bar.style.width = '100%', 1000);
 
             setTimeout(() => {
+                screen.style.pointerEvents = 'none'; // [FIX] Stop blocking clicks
                 screen.style.opacity = '0';
                 setTimeout(() => screen.style.display = 'none', 800);
                 
@@ -1737,7 +1745,7 @@
                     element.classList.remove('typing-cursor');
                     if (onComplete) onComplete();
                 }
-            }, 50);
+            }, 30); // [FIX] Faster typing speed (50->30)
         }
 
         function enableBtn(id) { document.getElementById(id).classList.remove('disabled'); }
