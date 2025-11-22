@@ -33,13 +33,14 @@
             transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1); /* 背景色丝滑过渡 */
         }  
 
-        /* --- Countdown Lock Screen (Layer 10000) --- */
+        /* --- Countdown Lock Screen (Highest Priority) --- */
         #countdown-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-color);
-            z-index: 10000;
-            /* Changed to flex by default so it blocks content immediately */
-            display: flex; 
+            /* Max Z-Index to block everything */
+            z-index: 2147483647; 
+            /* Flex centered, !important to prevent JS overrides before check */
+            display: flex !important; 
             flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.8s ease;
         }
@@ -978,8 +979,8 @@
     <div id="res-debug" style="position:fixed; top:4px; left:4px; font-size:10px; opacity:0.2; color:#000; z-index:10001; pointer-events:none; font-family:sans-serif;">Init...</div>
 
     <!-- 倒计时层 (Lock Screen) -->
-    <!-- Default visible (flex) to ensure security by default -->
-    <div id="countdown-layer" style="display: flex;">
+    <!-- Priority 1: Max Z-Index and Inline Display Force -->
+    <div id="countdown-layer" style="display: flex !important;">
         <div class="lock-icon" id="lock-btn">🔒</div>
         <div class="countdown-title">礼物派送中...</div>
         <div class="countdown-timer">
@@ -1031,7 +1032,7 @@
     <div id="flash-overlay"></div>
 
     <!-- 背景音乐 (预加载) -->
-    <audio id="bgm" loop preload="auto" autoplay>
+    <audio id="bgm" loop preload="auto">
         <source src="https://raw.githubusercontent.com/buzhixingyun/xiaohuMP3/refs/heads/main/Santa's%20Christmas%20Bells%20-%20Jingle%20Bells.mp3" type="audio/mpeg">
     </audio>
     <div id="music-control" onclick="toggleMusic(event)">🎵</div>
@@ -1201,18 +1202,18 @@
     <script>  
         // ================= 数据配置 =================  
         
-        // [NEW] 照片回忆录链接 (您可以随时替换这些链接)
+        // [NEW] 照片回忆录链接
         const PHOTO_MEMORIES = [
-            "https://pb.nichi.co/token-next-fever", // 示例：雪景
-            "https://pb.nichi.co/shuffle-slot-blind", // 示例：装饰
-            "https://pb.nichi.co/hole-flower-spirit", // 示例：装饰
-            "https://pb.nichi.co/cannon-speak-laptop", // 示例：装饰
-            "https://pb.nichi.co/code-face-write", // 示例：装饰
-            "https://pb.nichi.co/worth-unable-choose", // 示例：装饰
-            "https://pb.nichi.co/antenna-swallow-rib", // 示例：装饰
-            "https://pb.nichi.co/pact-gas-tomorrow", // 示例：装饰
-            "https://pb.nichi.co/twenty-ugly-tuition", // 示例：装饰
-            "https://pb.nichi.co/unaware-require-click"  // 示例：礼物
+            "https://pb.nichi.co/token-next-fever", 
+            "https://pb.nichi.co/shuffle-slot-blind", 
+            "https://pb.nichi.co/hole-flower-spirit", 
+            "https://pb.nichi.co/cannon-speak-laptop", 
+            "https://pb.nichi.co/code-face-write", 
+            "https://pb.nichi.co/worth-unable-choose", 
+            "https://pb.nichi.co/antenna-swallow-rib", 
+            "https://pb.nichi.co/pact-gas-tomorrow", 
+            "https://pb.nichi.co/twenty-ugly-tuition", 
+            "https://pb.nichi.co/unaware-require-click"  
         ];
 
         const INTRO_TEXT = "这是我们认识后我陪你度过的第一个圣诞节\n谨以此纪念我们的友谊\n在这个寒冷的冬天，希望可以为你带来一丝温暖";
@@ -1263,7 +1264,6 @@
             "没有文案，只有祝福。", "最后一条：永远快乐！", "特别的爱给特别的你。", "愿你三冬暖。", "愿你春不寒。",
             "愿你天黑有灯。", "愿你下雨有伞。", "愿你路上有良人相伴。", "圣诞节快乐呀！"
         ];
-        // 随机池副本
         let availableBalloonMsgs = [...BALLOON_MESSAGES];
   
         // ================= 系统变量 =================  
@@ -1271,19 +1271,19 @@
         const musicBtn = document.getElementById('music-control');
         let currentMemIndex = 0;
         
-        // Secret Bypass Logic
         let lockClickCount = 0;
         let lockClickTimer = null;
 
-        // ================= 初始化逻辑 =================  
+        // ================= 核心逻辑：初始化与锁定 =================  
         
-        // 1. DOM Ready: 立即开始倒计时检查 (不等待图片/字体)
+        // [Step 1] 唯一入口：DOM Ready 立即检查
         document.addEventListener('DOMContentLoaded', () => {
             initResponsive();
-            // [核心] 立即执行时间检查
-            checkLockStatus();
             
-            // Setup Bypass Listener
+            // 立即执行时间检查 - 这是最高优先级
+            initSystemLock();
+            
+            // 绑定开发者后门
             const lockBtn = document.getElementById('lock-btn');
             if(lockBtn) {
                 lockBtn.addEventListener('click', () => {
@@ -1292,44 +1292,19 @@
                     lockClickTimer = setTimeout(() => lockClickCount = 0, 1000);
                     
                     if(lockClickCount >= 5) {
-                       // Secret Unlock!
+                       // Secret Unlock
                        const layer = document.getElementById('countdown-layer');
-                       layer.innerHTML = '<h2 style="color:white;">Testing Mode Unlocked! 🚀</h2>';
+                       layer.innerHTML = '<h2 style="color:white; font-family:sans-serif;">Developer Bypass Active 🚀</h2>';
                        setTimeout(() => {
-                           layer.style.opacity = '0';
-                           setTimeout(() => {
-                               layer.style.display = 'none';
-                               startLoadingSequence();
-                           }, 500);
-                       }, 500);
+                           unlockAndStart(); 
+                       }, 800);
                     }
                 });
             }
         });
 
-        // 2. Window Load: 处理媒体资源
-        window.onload = async () => {
-            // 字体加载放到这里，不阻塞核心逻辑
-            try { await document.fonts.ready; } catch(e) {}
-            setInterval(createSnow, 200);
-            
-            const attemptPlay = () => {
-                bgm.play().then(() => {
-                    musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
-                }).catch(() => {
-                    const unlockAudio = () => {
-                        bgm.play(); musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
-                        document.removeEventListener('click', unlockAudio);
-                        document.removeEventListener('touchstart', unlockAudio);
-                    };
-                    document.addEventListener('click', unlockAudio);
-                    document.addEventListener('touchstart', unlockAudio);
-                });
-            };
-            attemptPlay();
-        };
-
-        function checkLockStatus() {
+        // 检查时间并决定去留
+        function initSystemLock() {
             // Target: 2024-12-25 00:00:00 Beijing Time (UTC+8)
             // Date.UTC(year, monthIndex, day, hour, min, sec)
             // Beijing 00:00 = UTC Prev Day 16:00
@@ -1339,19 +1314,16 @@
             const layer = document.getElementById('countdown-layer');
             
             if (now < targetTimestamp) {
-                // Locked logic
-                if(layer) layer.style.display = 'flex'; // Ensure visible
+                // [LOCKED STATE]
+                // layer is already displayed by CSS !important
                 startCountdown(targetTimestamp);
             } else {
-                // Unlocked logic
-                if(layer) layer.style.display = 'none';
-                // Check if loading screen is already running? No, init logic.
-                document.getElementById('loading-screen').style.display = 'flex';
-                startLoadingSequence();
+                // [UNLOCKED STATE]
+                unlockAndStart();
             }
         }
 
-        // 倒计时逻辑
+        // 倒计时循环
         function startCountdown(targetTs) {
             const layer = document.getElementById('countdown-layer');
             const elD = document.getElementById('cd-d');
@@ -1359,7 +1331,6 @@
             const elM = document.getElementById('cd-m');
             const elS = document.getElementById('cd-s');
             
-            // Initial update
             update();
             const timer = setInterval(update, 1000);
 
@@ -1369,12 +1340,7 @@
 
                 if (diff <= 0) {
                     clearInterval(timer);
-                    layer.style.opacity = '0';
-                    setTimeout(() => {
-                        layer.style.display = 'none';
-                        document.getElementById('loading-screen').style.display = 'flex';
-                        startLoadingSequence();
-                    }, 800);
+                    unlockAndStart(); // Time reached!
                     return;
                 }
 
@@ -1390,24 +1356,64 @@
             }
         }
 
-        // 原本的加载动画逻辑封装
+        // [Step 2] 解锁并启动应用 (Entry Point for App Logic)
+        // 只有这个函数被调用，后续的音乐、雪花、加载条才会出现
+        function unlockAndStart() {
+            const layer = document.getElementById('countdown-layer');
+            if(layer) {
+                layer.style.opacity = '0';
+                // Wait for fade out then destroy it
+                setTimeout(() => {
+                    layer.style.display = 'none'; // Hide completely
+                    startLoadingSequence(); // Start App
+                    initEnvironmentEffects(); // Start Snow/Music
+                }, 800);
+            } else {
+                // Fallback if layer missing
+                startLoadingSequence();
+                initEnvironmentEffects();
+            }
+        }
+
+        // 初始化环境特效 (雪花 + 音乐)
+        function initEnvironmentEffects() {
+            // Start Snow
+            setInterval(createSnow, 200);
+            
+            // Start Music (Attempt Autoplay)
+            const attemptPlay = () => {
+                bgm.play().then(() => {
+                    musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
+                }).catch(() => {
+                    // Interaction fallback
+                    const unlockAudio = () => {
+                        bgm.play(); musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
+                        document.removeEventListener('click', unlockAudio);
+                        document.removeEventListener('touchstart', unlockAudio);
+                    };
+                    document.addEventListener('click', unlockAudio);
+                    document.addEventListener('touchstart', unlockAudio);
+                });
+            };
+            attemptPlay();
+        }
+
+        // 加载条逻辑
         function startLoadingSequence() {
             const screen = document.getElementById('loading-screen');
             if(!screen) return;
-            screen.style.display = 'flex'; 
+            screen.style.display = 'flex'; // Ensure visible now
             
             const bar = document.getElementById('loading-bar');
             
-            // 模拟加载过程
             setTimeout(() => bar.style.width = '60%', 200);
             setTimeout(() => bar.style.width = '100%', 1000);
 
-            // 进度条满后再消失
             setTimeout(() => {
                 screen.style.opacity = '0';
                 setTimeout(() => screen.style.display = 'none', 800);
                 
-                // 显示首页
+                // Show Intro Stage
                 showStage('stage-0-intro');
                 spawnBgIcon();
                 
