@@ -38,7 +38,8 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-color);
             z-index: 10000;
-            display: none; /* Controlled by JS */
+            /* Changed to flex by default so it blocks content immediately */
+            display: flex; 
             flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.8s ease;
         }
@@ -46,7 +47,11 @@
             font-size: 4rem; margin-bottom: 20px; 
             animation: swing 3s infinite ease-in-out;
             filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+            cursor: pointer; /* Hint for interaction */
+            user-select: none;
         }
+        .lock-icon:active { transform: scale(0.9); }
+
         .countdown-title { 
             font-family: 'Ma Shan Zheng'; font-size: 1.4rem; color: #8d6e63; margin-bottom: 25px; 
             letter-spacing: 2px;
@@ -75,7 +80,9 @@
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            /* Default hidden, shown by JS if unlocked */
+            display: none; 
+            flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.8s ease-out;
         }
         
@@ -971,8 +978,9 @@
     <div id="res-debug" style="position:fixed; top:4px; left:4px; font-size:10px; opacity:0.2; color:#000; z-index:10001; pointer-events:none; font-family:sans-serif;">Init...</div>
 
     <!-- 倒计时层 (Lock Screen) -->
-    <div id="countdown-layer">
-        <div class="lock-icon">🔒</div>
+    <!-- Default visible (flex) to ensure security by default -->
+    <div id="countdown-layer" style="display: flex;">
+        <div class="lock-icon" id="lock-btn">🔒</div>
         <div class="countdown-title">礼物派送中...</div>
         <div class="countdown-timer">
             <div class="timer-part"><span class="timer-val" id="cd-d">00</span><span class="timer-label">DAYS</span></div>
@@ -1262,26 +1270,23 @@
         const bgm = document.getElementById('bgm');
         const musicBtn = document.getElementById('music-control');
         let currentMemIndex = 0;
+        
+        // Secret Bypass Logic
+        let lockClickCount = 0;
+        let lockClickTimer = null;
 
         // ================= 初始化 =================  
         window.onload = async () => {
-            // [NEW] Init Responsive
             initResponsive();
-            
             await document.fonts.ready;
             setInterval(createSnow, 200);
             
-            // [NEW] Auto-play Music Logic (Play immediately even if locked)
             const attemptPlay = () => {
                 bgm.play().then(() => {
-                    musicBtn.classList.add('playing');
-                    musicBtn.innerText = '🎵';
+                    musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
                 }).catch(() => {
-                    console.log("Autoplay blocked. Waiting for interaction.");
                     const unlockAudio = () => {
-                        bgm.play();
-                        musicBtn.classList.add('playing');
-                        musicBtn.innerText = '🎵';
+                        bgm.play(); musicBtn.classList.add('playing'); musicBtn.innerText = '🎵';
                         document.removeEventListener('click', unlockAudio);
                         document.removeEventListener('touchstart', unlockAudio);
                     };
@@ -1291,43 +1296,72 @@
             };
             attemptPlay();
 
-            // [NEW] Check Date Lock Logic
-            // Target: 2024-12-25 00:00:00 Beijing Time
-            const targetDate = new Date("2024-12-25T00:00:00+08:00");
-            const now = new Date();
-
-            if (now < targetDate) {
-                // Lock: Show Countdown
-                startCountdown(targetDate);
-            } else {
-                // Unlock: Proceed directly
-                startLoadingSequence();
-            }
+            // [REVISED] Date Lock Logic (Robust Beijing Time)
+            checkLockStatus();
+            
+            // Setup Bypass
+            const lockBtn = document.getElementById('lock-btn');
+            lockBtn.addEventListener('click', () => {
+                lockClickCount++;
+                if (lockClickTimer) clearTimeout(lockClickTimer);
+                lockClickTimer = setTimeout(() => lockClickCount = 0, 1000);
+                
+                if(lockClickCount >= 5) {
+                   // Secret Unlock!
+                   const layer = document.getElementById('countdown-layer');
+                   layer.innerHTML = '<h2 style="color:white;">Testing Mode Unlocked! 🚀</h2>';
+                   setTimeout(() => {
+                       layer.style.opacity = '0';
+                       setTimeout(() => {
+                           layer.style.display = 'none';
+                           startLoadingSequence();
+                       }, 500);
+                   }, 500);
+                }
+            });
         };
 
-        // 倒计时逻辑
-        function startCountdown(target) {
-            const layer = document.getElementById('countdown-layer');
-            layer.style.display = 'flex';
-            // Hide loading screen behind it (optional, but clean)
-            // document.getElementById('loading-screen').style.display = 'none'; 
+        function checkLockStatus() {
+            // Target: 2024-12-25 00:00:00 Beijing Time (UTC+8)
+            // We construct this using strict UTC components to avoid local browser timezone issues.
+            // Dec 25 00:00:00 +8 is equivalent to Dec 24 16:00:00 UTC.
+            // Date.UTC(year, monthIndex, day, hour, min, sec)
+            const targetTimestamp = Date.UTC(2024, 11, 24, 16, 0, 0); 
+            
+            const now = new Date().getTime();
+            
+            if (now < targetTimestamp) {
+                // Still locked
+                startCountdown(targetTimestamp);
+            } else {
+                // Unlocked
+                document.getElementById('countdown-layer').style.display = 'none';
+                document.getElementById('loading-screen').style.display = 'flex'; // Ensure loader is ready
+                startLoadingSequence();
+            }
+        }
 
+        // 倒计时逻辑
+        function startCountdown(targetTs) {
+            const layer = document.getElementById('countdown-layer');
+            // Ensure it's visible (CSS default is flex now, but just in case)
+            layer.style.display = 'flex';
+            
             const elD = document.getElementById('cd-d');
             const elH = document.getElementById('cd-h');
             const elM = document.getElementById('cd-m');
             const elS = document.getElementById('cd-s');
 
             const update = () => {
-                const now = new Date();
-                const diff = target - now;
+                const now = new Date().getTime();
+                const diff = targetTs - now;
 
                 if (diff <= 0) {
                     clearInterval(timer);
-                    // Unlock
                     layer.style.opacity = '0';
                     setTimeout(() => {
                         layer.style.display = 'none';
-                        // document.getElementById('loading-screen').style.display = 'flex'; 
+                        document.getElementById('loading-screen').style.display = 'flex';
                         startLoadingSequence();
                     }, 800);
                     return;
@@ -1350,9 +1384,10 @@
 
         // 原本的加载动画逻辑封装
         function startLoadingSequence() {
-            // 触发进度条动画
-            const bar = document.getElementById('loading-bar');
             const screen = document.getElementById('loading-screen');
+            screen.style.display = 'flex'; // Ensure visible before animating
+            
+            const bar = document.getElementById('loading-bar');
             
             // 模拟加载过程
             setTimeout(() => bar.style.width = '60%', 200);
@@ -1380,34 +1415,21 @@
             const handleResize = () => {
                 const w = window.innerWidth;
                 const h = window.innerHeight;
-                
-                // Update debug text
                 const debugEl = document.getElementById('res-debug');
                 let s = w / 414; 
-                
-                // Main Scene Adaptation
                 const sceneLayer = document.getElementById('scene-content-layer');
                 if(sceneLayer) {
-                    // Base design reference: 414px width (Large Mobile)
-                    // If width is smaller, scale down.
-                    
-                    // Add constraints for very short screens to ensure tree fits
                     if (h < 700) {
                         const hScale = h / 800;
                         s = Math.min(s, hScale);
                     }
-                    
-                    // Clamp scale to avoid it being too small or too huge
                     s = Math.min(Math.max(s, 0.6), 1.2);
-                    
                     sceneLayer.style.transform = `scale(${s})`;
                 }
-
                 if(debugEl) debugEl.innerText = `Adapt: ${w}x${h} (s:${s.toFixed(2)})`;
             };
-            
             window.addEventListener('resize', handleResize);
-            handleResize(); // Initial call
+            handleResize(); 
         }
 
         // ================= 特效引擎 (Theme Engine) =================  
