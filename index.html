@@ -715,10 +715,15 @@
         
         /* The Central Stage */
         .center-stage {
-            position: absolute; bottom: 60px; left: 50%;
+            position: absolute; bottom: 100px; /* Lifted from 60px for mobile thumb access */
+            left: 50%;
             transform: translateX(-50%);
             width: 300px; height: 500px;
             display: flex; justify-content: center; align-items: flex-end;
+            pointer-events: none; /* Container passes clicks */
+        }
+        @media (max-height: 700px) {
+            .center-stage { bottom: 80px; }
         }
 
         /* The Giant Tree */
@@ -728,6 +733,7 @@
             position: relative; z-index: 10; /* Middle Layer */
             transform-origin: bottom center;
             animation: treeBreath 4s ease-in-out infinite alternate;
+            pointer-events: none; /* [FIX] Allow clicks to pass through transparent parts of emoji */
         }
         @keyframes treeBreath { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
 
@@ -738,6 +744,7 @@
             font-size: 4rem; z-index: 11;
             filter: drop-shadow(0 0 15px gold);
             animation: starTwinkle 1.5s infinite alternate;
+            pointer-events: none;
         }
         @keyframes starTwinkle { 0% { opacity: 0.8; transform: translateX(-50%) scale(1); } 100% { opacity: 1; transform: translateX(-50%) scale(1.2); } }
 
@@ -748,12 +755,14 @@
             left: 50%;
             width: 0; height: 0;
             z-index: 20;
+            pointer-events: none;
         }
 
         .balloon-wrapper {
             position: absolute; top: -90px; left: -60px;
             width: 120px; height: 180px;
             cursor: pointer;
+            pointer-events: auto; /* [FIX] Re-enable clicks */
             will-change: transform, z-index;
             animation: orbit3D 20s linear infinite;
         }
@@ -800,7 +809,7 @@
                 100% { z-index: 20; transform: translateX(0px) translateY(20px) scale(1.1); }
             }
             .giant-tree { font-size: 18rem; }
-            .center-stage { bottom: 80px; }
+            .center-stage { bottom: 110px; }
         }
 
         /* Balloon Graphics (Same as before) */
@@ -842,6 +851,12 @@
             background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
             background-size: 8px 8px;
         }
+        /* [FIX] Larger hit area for secret trigger */
+        .balloon-basket::before {
+            content: ''; position: absolute;
+            top: -30px; left: -30px; right: -30px; bottom: -30px;
+            z-index: 10;
+        }
         .balloon-basket:active { transform: scale(0.9); }
         .balloon-basket::after {
             content: '🎁'; position: absolute; top: -8px; font-size: 1.1rem;
@@ -873,6 +888,7 @@
             display: flex; align-items: flex-end; justify-content: center;
             z-index: 20; /* Front of tree */
             width: 100%; max-width: 500px;
+            pointer-events: none; /* Wrapper passes clicks */
         }
         
         .doll-item {
@@ -883,7 +899,15 @@
             transition: transform 0.2s;
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
             user-select: none;
+            pointer-events: auto; /* [FIX] Enable clicks on items */
         }
+        /* [FIX] Large hit area for dolls */
+        .doll-item::before {
+            content: ''; position: absolute;
+            top: -20px; left: -10px; right: -10px; bottom: -10px;
+            z-index: 1;
+        }
+        
         /* Arc effect via margins and translateY */
         .doll-item:nth-child(1) { transform: translateY(-10px) rotate(-10deg); margin-right: 10px; }
         .doll-item:nth-child(2) { transform: translateY(-5px) rotate(-5deg); margin-right: 5px; }
@@ -1517,7 +1541,8 @@
                         const hScale = h / 800;
                         s = Math.min(s, hScale);
                     }
-                    s = Math.min(Math.max(s, 0.6), 1.2);
+                    // [FIX] Increase minimum scale to prevent items from becoming too small
+                    s = Math.min(Math.max(s, 0.75), 1.3);
                     sceneLayer.style.transform = `scale(${s})`;
                 }
                 if(debugEl) debugEl.innerText = `Adapt: ${w}x${h} (s:${s.toFixed(2)})`;
