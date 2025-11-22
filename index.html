@@ -1170,7 +1170,7 @@
             <div class="final-subtitle">属于你的可爱冬天 ✨</div>
         </div>
         
-        <!-- Scene Content Layer for Responsive Scaling -->
+        <!-- Scene Content Wrapper for auto-scaling -->
         <div id="scene-content-layer">
             <!-- Flying Sleigh (Background) -->
             <div class="sleigh-container" id="sleigh">🎅🦌💨</div>
@@ -1318,9 +1318,6 @@
         const musicBtn = document.getElementById('music-control');
         let currentMemIndex = 0;
         
-        let lockClickCount = 0;
-        let lockClickTimer = null;
-
         // ================= 核心逻辑：初始化与锁定 =================  
         
         // [Step 1] 唯一入口：DOM Ready 立即检查
@@ -1330,20 +1327,13 @@
             // 立即执行时间检查 - 这是最高优先级
             initSystemLock();
             
-            // 绑定开发者后门 (Updated: Trigger Password Modal)
+            // 绑定开发者后门 (Updated: Trigger Password Modal on 1st Click)
             const lockBtn = document.getElementById('lock-btn');
             if(lockBtn) {
                 lockBtn.addEventListener('click', () => {
-                    lockClickCount++;
-                    if (lockClickTimer) clearTimeout(lockClickTimer);
-                    lockClickTimer = setTimeout(() => lockClickCount = 0, 1000);
-                    
-                    if(lockClickCount >= 5) {
-                       // Show Password Modal
-                       document.getElementById('bypass-modal').style.display = 'flex';
-                       // Reset count
-                       lockClickCount = 0;
-                    }
+                   // Show Password Modal immediately
+                   document.getElementById('bypass-modal').style.display = 'flex';
+                   setTimeout(() => document.getElementById('bypass-input').focus(), 100);
                 });
             }
         });
