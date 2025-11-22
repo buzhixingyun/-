@@ -2,8 +2,10 @@
 <html lang="zh-CN">  
 <head>  
     <meta charset="UTF-8">  
-    <!-- 禁用缩放，优化移动端体验，解决 iOS 点击延迟 -->
+    <!-- 禁用缩放，优化移动端体验 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+    <!-- [关键修改] 添加 no-referrer 策略，尝试绕过 Gitee 等国内图床的防盗链检查 -->
+    <meta name="referrer" content="no-referrer">
     <title>Merry Christmas! 🎄</title>  
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">  
   
@@ -1104,7 +1106,8 @@
 
     <!-- 背景音乐 (预加载) -->
     <audio id="bgm" loop preload="auto">
-        <source src="https://gitee.com/konatatata/material/raw/master/Santa's%20Christmas%20Bells%20-%20Jingle%20Bells.mp3" type="audio/mpeg">
+        <!-- 替换为国内可访问的网易云音乐直链 -->
+        <source src="https://music.163.com/song/media/outer/url?id=478507889.mp3" type="audio/mpeg">
     </audio>
     <div id="music-control" onclick="toggleMusic(event)">🎵</div>
   
@@ -1273,11 +1276,12 @@
     <script>  
         // ================= 数据配置 =================  
         
-        // [NEW] 照片回忆录链接
+        // [UPDATED] 切换回 Gitee 链接（配合 meta no-referrer 可在国内访问）
+        // 提示：如果在某些网络下依然无法加载，请下载这些图片到本地，改为本地路径 (如 "./img/1.png")
         const PHOTO_MEMORIES = [
-            "http://down.tgcsky.cn/uploads/1/c1d92e9b-9da7-4bd2-ba45-81f3ffee9312_1.jpg?e=1763823325&token=q6jYf7yVrFTKoix5Jb-vHfAXR4yw8kpLPE0AD7pe:71uxmCxg2gTuRNTipb4obFhWlMI=",
-            "http://down.tgcsky.cn/uploads/1/c1d92e9b-9da7-4bd2-ba45-81f3ffee9312_1.jpg?e=1763823325&token=q6jYf7yVrFTKoix5Jb-vHfAXR4yw8kpLPE0AD7pe:71uxmCxg2gTuRNTipb4obFhWlMI=",
-            "http://pan.miui.space/f/JniL/4e8633b4303b506c640aad08a823b80d.png",
+            "https://gitee.com/konatatata/material/raw/master/e74e3566a563c744640a12eac2a8ec7f.png",
+            "https://gitee.com/konatatata/material/raw/master/cd2319e76c903b0304e99337459f69b2.png",
+            "https://gitee.com/konatatata/material/raw/master/ca3e6bb9323f7264aadaa546fcc2f78a.png",
             "https://gitee.com/konatatata/material/raw/master/bfbe9a1ea6b05d767dc8638d8d6e6d5b.png",
             "https://gitee.com/konatatata/material/raw/master/ba6fb3bc26dff7f50583799adc031631.png",
             "https://gitee.com/konatatata/material/raw/master/4e8633b4303b506c640aad08a823b80d.png",
